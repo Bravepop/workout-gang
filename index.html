@@ -1,0 +1,1594 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Workout Gang</title>
+<meta name="description" content="Workout competitions with friends: log your days, win weeks for your team, and get your name in the Hall of Fame.">
+<!-- Link previews (iMessage, Discord, WhatsApp...) -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Workout Gang">
+<meta property="og:title" content="Workout Gang">
+<meta property="og:description" content="Log your days. Win weeks for your team. Private workout leagues for friends.">
+<meta property="og:url" content="https://workoutgang.bravepop.app/">
+<meta property="og:image" content="https://workoutgang.bravepop.app/img/preview.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Workout Gang: log your days, win weeks for your team">
+<meta name="twitter:card" content="summary_large_image">
+<!-- Install as an app -->
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="img/apple-touch-icon.png">
+<meta name="theme-color" content="#131820">
+<meta name="apple-mobile-web-app-title" content="Workout Gang">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='1' y='1' width='30' height='30' rx='6' fill='%23131820'/%3E%3Ctext x='16' y='24' font-size='21' text-anchor='middle' fill='%23e6b440' font-family='Impact,Arial Black,sans-serif'%3EW%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://pbgedfapgvmvyzsdblab.supabase.co" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;800;900&family=Barlow:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: broadcast-style season title card with the team score, then a tabbed workspace
+   (scoreboard, log, sheet, weekly, hall of fame, manage). Home: sign-in and your leagues. */
+:root {
+  --bg: #eef0f4;
+  --surface: #ffffff;
+  --surface-2: #f6f7fa;
+  --ink: #131820;
+  --muted: #5b6575;
+  --line: #d9dde5;
+  --gold: #b8820f;
+  --silver: #7d8796;
+  --bronze: #a8653a;
+  --good: #23865a;
+  --bad: #c2392f;
+  --focus: #2f6fdb;
+  --display: "Big Shoulders Display", "Arial Narrow", "Roboto Condensed", Impact, sans-serif;
+  --body: "Barlow", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --radius: 10px;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0e1117; --surface: #161a22; --surface-2: #1c212b; --ink: #e8ecf2; --muted: #98a1b0; --line: #2a303c;
+    --gold: #e6b440; --silver: #aab3c0; --bronze: #d08a5c; --good: #4cc08a; --bad: #ec6a5e; --focus: #6d9cf0;
+    color-scheme: dark;
+  }
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 15px; line-height: 1.45;
+  padding: env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px) env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px); }
+.wrap { max-width: 1120px; margin: 0 auto; padding-inline: 16px; padding-block: 16px 48px; }
+h1, h2, h3 { font-family: var(--display); text-wrap: balance; margin: 0; letter-spacing: .01em; }
+h2 { font-size: 1.6rem; font-weight: 800; text-transform: uppercase; }
+h3 { font-size: 1.15rem; font-weight: 800; text-transform: uppercase; }
+p { margin: 0; }
+td { font-variant-numeric: tabular-nums; }
+.num { font-variant-numeric: tabular-nums; }
+.muted { color: var(--muted); }
+.eyebrow, .label { font-size: .75rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+button, input, select, textarea { font: inherit; color: inherit; }
+a { color: inherit; }
+:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+select, input[type=text], input[type=number], input[type=date], input[type=password], input:not([type]), textarea {
+  background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; min-width: 0;
+}
+textarea { width: 100%; min-height: 110px; resize: vertical; }
+
+/* top bar */
+.top { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; justify-content: space-between; }
+.brand { font-family: var(--display); font-weight: 900; font-size: 1.5rem; text-transform: uppercase; letter-spacing: .02em; text-decoration: none; }
+.top-right { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+.you { font-size: .9rem; color: var(--muted); }
+.you b { color: var(--ink); }
+.icon-btn { width: 38px; height: 38px; border-radius: 8px; border: 1px solid var(--line); background: var(--surface); cursor: pointer; display: inline-grid; place-items: center; }
+.icon-btn svg { width: 20px; height: 20px; }
+
+/* title card */
+.card-title { margin-top: 18px; background: var(--ink); color: var(--bg); border-radius: 14px; padding: 22px 22px 18px; }
+.card-title .eyebrow { color: color-mix(in srgb, var(--bg) 70%, transparent); }
+.card-title h1 { font-size: clamp(2.2rem, 6vw, 3.8rem); font-weight: 900; text-transform: uppercase; line-height: .95; margin-top: 4px; }
+.card-title .meta { margin-top: 8px; font-size: .9rem; color: color-mix(in srgb, var(--bg) 75%, transparent); }
+.versus { display: grid; gap: 10px; margin-top: 18px; }
+.vs-row { display: flex; flex-wrap: wrap; gap: 10px 24px; align-items: flex-end; }
+.vs-team { display: flex; flex-direction: column; min-width: 0; }
+.vs-team .nm { font-size: .78rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; display: flex; align-items: center; gap: 6px; }
+.vs-team .nm i { width: 10px; height: 10px; border-radius: 3px; background: var(--team); }
+.vs-team .sc { font-family: var(--display); font-weight: 900; font-size: clamp(2.4rem, 7vw, 4.2rem); line-height: 1; }
+.vs-team .lead { font-size: .75rem; font-weight: 700; color: var(--gold); letter-spacing: .06em; text-transform: uppercase; min-height: 1em; }
+.vs-bar { display: flex; height: 12px; border-radius: 6px; overflow: hidden; background: color-mix(in srgb, var(--bg) 20%, transparent); }
+.vs-bar span { background: var(--team); }
+.goal { font-size: .82rem; color: color-mix(in srgb, var(--bg) 75%, transparent); }
+
+/* tabs */
+.tabs { display: flex; gap: 4px; margin-top: 16px; border-bottom: 1px solid var(--line); overflow-x: auto; scrollbar-width: none; }
+.tabs a { padding: 10px 14px; text-decoration: none; color: var(--muted); font-weight: 600; border-bottom: 3px solid transparent; white-space: nowrap; }
+.tabs a[aria-current=page] { color: var(--ink); border-bottom-color: var(--ink); }
+.tabs a:hover { color: var(--ink); }
+#main { margin-top: 20px; }
+
+.grid2 { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); gap: 20px; align-items: start; }
+@media (max-width: 820px) { .grid2 { grid-template-columns: minmax(0, 1fr); } }
+.panel, .box { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px; min-width: 0; }
+.stack { display: flex; flex-direction: column; gap: 20px; min-width: 0; }
+.row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.between { justify-content: space-between; }
+
+/* leaderboard */
+.scroll { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; }
+th { text-align: left; font-size: .72rem; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); font-weight: 700; padding: 8px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+td { padding: 9px 8px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+tr:last-child td { border-bottom: 0; }
+th.r, td.r { text-align: right; }
+.rank { display: inline-grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; font-weight: 700; font-size: .85rem; color: var(--muted); }
+.rank.g1 { background: var(--gold); color: #fff; }
+.rank.g2 { background: var(--silver); color: #fff; }
+.rank.g3 { background: var(--bronze); color: #fff; }
+.pl { display: inline-flex; align-items: center; gap: 8px; font-weight: 600; }
+.dot { width: 10px; height: 10px; border-radius: 50%; background: var(--team); flex: none; }
+.total { font-family: var(--display); font-weight: 800; font-size: 1.35rem; }
+.me-row td { background: color-mix(in srgb, var(--gold) 10%, transparent); }
+.spark { display: inline-flex; gap: 2px; align-items: flex-end; height: 22px; vertical-align: middle; }
+.spark i { width: 5px; background: var(--team); border-radius: 1px; opacity: .85; }
+.spark i.z { background: var(--line); height: 2px !important; opacity: 1; }
+
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; background: var(--surface-2); border: 1px solid var(--line); font-size: .85rem; font-weight: 600; }
+.chip b { font-variant-numeric: tabular-nums; }
+.chip.off { opacity: .5; font-weight: 500; }
+.rules { white-space: pre-line; }
+.rules-points { display: grid; grid-template-columns: auto 1fr; gap: 6px 12px; margin-top: 12px; }
+.rules-points b { font-family: var(--display); font-weight: 800; font-size: 1.2rem; }
+
+/* buttons and forms */
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 8px 14px; border-radius: 8px; border: 1px solid var(--line); background: var(--surface); cursor: pointer; font-weight: 600; text-decoration: none; }
+.btn:hover { border-color: var(--muted); }
+.btn.primary { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.btn.danger { color: var(--bad); }
+.btn.small { padding: 4px 10px; font-size: .85rem; }
+.btn:disabled { opacity: .5; cursor: not-allowed; }
+.link-btn { background: none; border: 0; padding: 0; color: var(--muted); text-decoration: underline; cursor: pointer; font-size: .9rem; }
+.field { display: grid; gap: 6px; min-width: 0; }
+.field label, .lbl { font-size: .78rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.field input, .field select { width: 100%; }
+.help { font-size: .85rem; color: var(--muted); }
+.form-error { color: var(--bad); font-weight: 600; font-size: .9rem; }
+.check { display: inline-flex; align-items: center; gap: 8px; }
+.form-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 200px), 1fr)); gap: 12px; }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.seg button { border: 0; background: var(--surface); padding: 7px 14px; cursor: pointer; font-weight: 600; }
+.seg button[aria-pressed=true] { background: var(--ink); color: var(--bg); }
+
+/* log form */
+.log-form { display: grid; gap: 16px; }
+.toggles { display: flex; flex-wrap: wrap; gap: 8px; }
+.toggle { padding: 12px 16px; border-radius: 10px; border: 2px solid var(--line); background: var(--surface); cursor: pointer; text-align: left; display: grid; gap: 2px; min-width: 130px; }
+.toggle b { font-family: var(--display); font-size: 1.3rem; font-weight: 800; }
+.toggle small { color: var(--muted); }
+.toggle[aria-pressed=true] { border-color: var(--ink); background: var(--surface-2); }
+.calc { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; padding: 14px 16px; border-radius: 10px; background: var(--surface-2); }
+.calc .big { font-family: var(--display); font-weight: 900; font-size: 3rem; line-height: 1; }
+.steps-meter { display: flex; gap: 4px; }
+.steps-meter i { width: 26px; height: 8px; border-radius: 4px; background: var(--line); }
+.steps-meter i.on { background: var(--good); }
+.recent { display: grid; gap: 4px; }
+.recent button { display: flex; justify-content: space-between; padding: 8px 10px; border-radius: 8px; border: 1px solid transparent; background: none; cursor: pointer; text-align: left; }
+.recent button:hover { border-color: var(--line); }
+.recent button.sel { border-color: var(--ink); }
+
+/* sheet grid */
+.sheet-wrap { overflow: auto; max-height: 75vh; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); }
+.sheet { border-collapse: separate; border-spacing: 0; width: max-content; min-width: 100%; }
+.sheet th, .sheet td { border-bottom: 1px solid var(--line); border-right: 1px solid var(--line); padding: 0; text-align: center; }
+.sheet thead th { position: sticky; top: 0; background: var(--surface); z-index: 2; padding: 8px 6px; letter-spacing: .04em; font-size: .72rem; color: var(--ink); border-top: 4px solid var(--team); }
+.sheet .dcol { position: sticky; left: 0; background: var(--surface); z-index: 1; text-align: left; padding: 6px 10px; font-weight: 600; font-size: .85rem; white-space: nowrap; }
+.sheet thead .dcol { z-index: 3; border-top-color: transparent; }
+.sheet td.cell { width: 56px; min-width: 56px; height: 34px; }
+.sheet td.cell button, .sheet td.cell input { width: 100%; height: 100%; border: 0; background: transparent; text-align: center; font-weight: 600; cursor: pointer; padding: 0; font-variant-numeric: tabular-nums; border-radius: 0; }
+.sheet td.cell input { background: var(--surface); outline: 2px solid var(--focus); outline-offset: -2px; cursor: text; }
+.sheet td.cell button:disabled { cursor: default; color: inherit; }
+.sheet tr.wk td { background: var(--surface-2); font-size: .78rem; font-weight: 700; padding: 6px 4px; color: var(--muted); }
+.sheet tr.wk .dcol { background: var(--surface-2); letter-spacing: .08em; text-transform: uppercase; }
+.sheet tr.today .dcol { color: var(--focus); }
+.sheet tfoot td { position: sticky; bottom: 0; background: var(--surface); font-family: var(--display); font-weight: 800; font-size: 1.1rem; padding: 6px 4px; border-top: 2px solid var(--ink); }
+
+/* weekly chart */
+.chart svg { display: block; width: 100%; height: auto; min-width: 520px; }
+.chart text { fill: var(--muted); font-size: 11px; font-family: var(--body); }
+.legend { display: flex; flex-wrap: wrap; gap: 14px; font-size: .85rem; font-weight: 600; }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+
+/* hall of fame */
+.fame { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr)); gap: 16px; }
+.season-card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px; display: grid; gap: 12px; align-content: start; }
+.season-card .ep { font-family: var(--display); font-weight: 900; font-size: 1.5rem; text-transform: uppercase; line-height: 1; }
+.podium { display: grid; gap: 4px; }
+.podium div { display: flex; align-items: center; gap: 10px; }
+.podium .pts { margin-left: auto; font-variant-numeric: tabular-nums; color: var(--muted); }
+.awards { display: grid; gap: 4px; font-size: .88rem; border-top: 1px solid var(--line); padding-top: 10px; }
+.awards div { display: flex; justify-content: space-between; gap: 12px; }
+.awards span:first-child { color: var(--muted); }
+.awards span:last-child { font-weight: 600; text-align: right; }
+.champ { display: inline-flex; align-items: center; gap: 8px; font-weight: 700; padding: 6px 10px; border-radius: 8px; background: color-mix(in srgb, var(--team) 14%, transparent); }
+
+/* manage */
+.edit-list { display: grid; gap: 8px; }
+.edit-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.edit-row > input:not([type=color]), .edit-row > select { flex: 1 1 140px; }
+.edit-row input[type=color] { width: 40px; height: 36px; padding: 2px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); }
+
+/* home */
+.home { display: grid; gap: 20px; max-width: 560px; margin: 28px auto 0; }
+.pitch h2 { font-size: clamp(2rem, 7vw, 3rem); font-weight: 900; line-height: .95; }
+.pitch ul { margin: 14px 0; padding-left: 20px; display: grid; gap: 4px; }
+.box { display: grid; gap: 14px; }
+.or-rule { display: flex; align-items: center; gap: 10px; color: var(--muted); font-size: .85rem; }
+.or-rule::before, .or-rule::after { content: ""; flex: 1; height: 1px; background: var(--line); }
+.acct-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+.league-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.league-list a { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--line); text-decoration: none; font-weight: 700; }
+.league-list a:hover { border-color: var(--ink); }
+.league-list small { color: var(--muted); font-weight: 500; }
+.claim { border: 0; padding: 0; margin: 0; display: grid; gap: 6px; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
+.claim legend { margin-bottom: 6px; }
+.home-foot { text-align: center; font-size: .9rem; }
+
+/* dialogs */
+dialog { border: 1px solid var(--line); border-radius: 14px; background: var(--surface); color: var(--ink); padding: 20px; width: min(640px, calc(100vw - 32px)); max-height: calc(100vh - 32px); }
+dialog.narrow { width: min(440px, calc(100vw - 32px)); }
+dialog::backdrop { background: rgb(0 0 0 / .45); }
+dialog form { display: grid; gap: 14px; }
+.dialog-actions { display: flex; justify-content: flex-end; gap: 8px; }
+.adm-section { display: grid; gap: 10px; padding-block: 14px; border-top: 1px solid var(--line); }
+.adm-members { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.adm-members li { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; justify-content: space-between; }
+.adm-members .who small { display: block; color: var(--muted); font-size: .8rem; }
+.adm-members .acts { display: flex; flex-wrap: wrap; gap: 6px; }
+.inline { display: flex; gap: 8px; flex-wrap: wrap; align-items: end; }
+.inline .field { flex: 1 1 200px; }
+.rcode { font-family: ui-monospace, Consolas, monospace; font-size: 1.15rem; font-weight: 700; padding: 12px; border-radius: 8px; background: var(--surface-2); text-align: center; letter-spacing: .05em; word-break: break-all; }
+
+.notice { padding: 14px 16px; border-radius: 10px; background: var(--surface-2); border: 1px dashed var(--line); color: var(--muted); }
+.status-box { text-align: center; padding: 48px 16px; }
+.status-box strong { display: block; font-family: var(--display); font-size: 1.6rem; text-transform: uppercase; }
+footer { max-width: 1120px; margin: 0 auto; padding: 0 16px 32px; font-size: .85rem; color: var(--muted); }
+.toast { position: fixed; left: 50%; bottom: calc(20px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--ink); color: var(--bg); padding: 10px 16px; border-radius: 10px; font-weight: 600; max-width: calc(100% - 32px); z-index: 10; }
+@media (prefers-reduced-motion: no-preference) { .vs-bar span { transition: flex-grow .5s ease; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <a class="brand" href="./" id="brand">Workout Gang</a>
+    <div class="top-right" id="top-right"></div>
+  </header>
+  <div id="home" class="home" hidden></div>
+  <div id="app" hidden>
+    <div id="title"></div>
+    <nav class="tabs" id="tabs" aria-label="Sections"></nav>
+    <div id="main"></div>
+  </div>
+  <div id="status" class="status-box"><strong>Loading</strong></div>
+</div>
+<footer><span id="footer-note">Leagues are private: only their members can see them.</span> · <a href="privacy.html">Privacy</a></footer>
+
+<dialog id="recovery" class="narrow" aria-labelledby="recovery-h">
+  <form id="recovery-form" novalidate>
+    <h3 id="recovery-h">Save your recovery code</h3>
+    <p class="muted">If you forget your password, this code and your username let you set a new one. Nobody else can reset it for you, so keep it somewhere safe, like a password manager or a note on your phone.</p>
+    <div class="rcode" id="recovery-code"></div>
+    <div><button class="btn small" type="button" id="recovery-copy">Copy code</button></div>
+    <label class="check"><input type="checkbox" id="recovery-saved"> I've saved it</label>
+    <div class="dialog-actions"><button type="submit" class="btn primary" id="recovery-go" disabled>Continue</button></div>
+  </form>
+</dialog>
+
+<dialog id="passwd" class="narrow" aria-labelledby="passwd-h">
+  <form id="passwd-form" novalidate>
+    <h3 id="passwd-h">Change password</h3>
+    <div class="field"><label for="p-new">New password</label><input id="p-new" type="password" autocomplete="new-password"><span class="help">At least 8 characters.</span></div>
+    <div class="field"><label for="p-again">Type it again</label><input id="p-again" type="password" autocomplete="new-password"></div>
+    <p class="form-error" id="passwd-error" hidden></p>
+    <div class="dialog-actions"><button type="button" class="btn" data-close>Cancel</button><button type="submit" class="btn primary">Save password</button></div>
+  </form>
+</dialog>
+
+<dialog id="settings" class="narrow" aria-labelledby="settings-h">
+  <form id="settings-form" novalidate>
+    <h3 id="settings-h">Settings</h3>
+    <div class="adm-section" id="settings-league">
+      <span class="label">This league</span>
+      <div class="row">
+        <button class="btn small" type="button" id="btn-league-admin" hidden>League settings</button>
+        <a class="btn small" href="./">Your leagues</a>
+        <button class="btn small danger" type="button" id="btn-leave">Leave this league</button>
+      </div>
+    </div>
+    <div class="adm-section">
+      <span class="label">Account</span>
+      <span class="muted" id="settings-email"></span>
+      <div class="row">
+        <button class="btn small" type="button" id="btn-passwd" hidden>Change password</button>
+        <button class="btn small" type="button" id="btn-new-recovery" hidden>New recovery code</button>
+        <button class="btn small" type="button" id="btn-signout">Sign out</button>
+        <button class="btn small danger" type="button" id="btn-delete-account">Delete my account</button>
+      </div>
+      <p class="help">Your Bravepop account also signs you in to Movie Club. Deleting it removes it there too.</p>
+    </div>
+    <div class="dialog-actions"><button type="submit" class="btn primary">Done</button></div>
+  </form>
+</dialog>
+
+<dialog id="league-admin" aria-labelledby="league-admin-h">
+  <form id="league-admin-form" novalidate>
+    <h3 id="league-admin-h">League settings</h3>
+    <div id="league-admin-body"></div>
+    <div class="dialog-actions"><button type="button" class="btn primary" data-close>Done</button></div>
+  </form>
+</dialog>
+
+<div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+
+<script src="config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js"></script>
+<script>
+'use strict';
+const CFG = window.WORKOUT_GANG || {};
+const PARAMS = new URLSearchParams(location.search);
+const LEAGUE_SLUG = PARAMS.get('l');     // ?l=<league> opens a league
+const JOIN_CODE = PARAMS.get('join');    // ?join=<invite code> opens the invite page
+
+/* ---------- helpers ---------- */
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const fmtN = n => (Math.round(n * 10) / 10).toLocaleString();
+const clone = o => JSON.parse(JSON.stringify(o));
+const plural = (n, w) => `${n} ${w}${n === 1 ? '' : 's'}`;
+function lsGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+function lsSet(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+
+let toastTimer;
+function toast(msg) {
+  const el = $('toast'); el.textContent = msg; el.hidden = false;
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => { el.hidden = true; }, 3800);
+}
+function openDialog(d) { d.showModal ? d.showModal() : d.setAttribute('open', ''); }
+function closeDialog(d) { d.close ? d.close() : d.removeAttribute('open'); }
+document.querySelectorAll('dialog [data-close]').forEach(b => b.addEventListener('click', () => closeDialog(b.closest('dialog'))));
+function showStatus(title, body) {
+  $('home').hidden = true; $('app').hidden = true; $('status').hidden = false;
+  $('status').innerHTML = `<strong>${esc(title)}</strong><p class="muted">${esc(body || '')}</p>`;
+}
+
+/* ---------- dates (ISO yyyy-mm-dd, arithmetic in UTC so days never shift) ---------- */
+const DAY = 864e5;
+const pad = n => String(n).padStart(2, '0');
+const dParse = s => { const [y, m, d] = s.split('-').map(Number); return Date.UTC(y, m - 1, d); };
+const dFmt = t => new Date(t).toISOString().slice(0, 10);
+const dAdd = (s, n) => dFmt(dParse(s) + n * DAY);
+const dDow = s => new Date(dParse(s)).getUTCDay();
+const today = () => { const n = new Date(); return `${n.getFullYear()}-${pad(n.getMonth() + 1)}-${pad(n.getDate())}`; };
+const DOW = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const dShort = s => { const d = new Date(dParse(s)); return `${DOW[d.getUTCDay()]} ${d.getUTCMonth() + 1}/${d.getUTCDate()}`; };
+const dLong = s => { const d = new Date(dParse(s)); return `${MON[d.getUTCMonth()]} ${d.getUTCDate()}, ${d.getUTCFullYear()}`; };
+const dMonDay = s => { const d = new Date(dParse(s)); return `${MON[d.getUTCMonth()]} ${d.getUTCDate()}`; };
+const weekStart = s => dAdd(s, -((dDow(s) + 6) % 7));
+
+/* ---------- state ---------- */
+let sb = null, session = null;
+let league = null;          // {id, slug, name}
+let members = [];           // [{name, user_id, role, created_at}]
+let me = null;              // my name in this league
+const S = {
+  seasons: {},              // id -> {num, name, status, start, end, scoring, maxPerDay, goal, rules, teams, awards, players: [{id, name, team}], legacyPoints}
+  entries: {},              // "<season id>__<name>" -> {days: {date: points}, detail: {date: {...}}}
+  seasonId: lsGet('wg-season'), view: 'board',
+  log: null, draft: null, draftFor: null, pendingRender: false, confirm: null, newSeason: null,
+};
+const VIEWS = [['board', 'Scoreboard'], ['log', 'Log a day'], ['grid', 'Sheet'], ['weekly', 'Weekly'], ['fame', 'Hall of Fame'], ['manage', 'Manage']];
+const SCORING = { steps: 'Steps + workout', tiers: 'Walk / bodyweight / gym', manual: 'Enter points directly', legacy: 'Final standings only' };
+const PALETTE = ['#d6453d', '#2f6fdb', '#e0a91b', '#2e9e5b', '#8a5cd6', '#e0732b'];
+const STEPS_RULES = 'For every 10k steps you walk in a day you get 1 point, up to 3 points (30k steps). A workout of at least 30 minutes, at the gym or elsewhere, is worth 3 points. Max 6 points per day.';
+const TIER_RULES = '1 point: a 30 min walk or low intensity activity.\n2 points: a 30 min bodyweight workout or medium intensity activity.\n3 points: the gym or a high intensity workout.\nCount as many as you do in a day; each level counts once per day.';
+const isAdmin = () => !!me && members.some(m => m.name === me && m.role === 'admin');
+
+/* ---------- loading ---------- */
+// Supabase returns at most 1,000 rows per request; page through bigger tables.
+async function fetchAll(build) {
+  let out = [];
+  for (let from = 0; ; from += 1000) {
+    const { data, error } = await build().range(from, from + 999);
+    if (error) throw error;
+    out = out.concat(data);
+    if (data.length < 1000) return out;
+  }
+}
+async function load() {
+  const [m, se, ro, dy] = await Promise.all([
+    sb.from('wg_members').select('name, user_id, role, created_at').eq('league_id', league.id).order('name'),
+    sb.from('wg_seasons').select('*').eq('league_id', league.id),
+    fetchAll(() => sb.from('wg_roster').select('season_id, member, team, position, final_points').eq('league_id', league.id).order('season_id').order('position').order('member')),
+    fetchAll(() => sb.from('wg_days').select('season_id, member, day, points, detail').eq('league_id', league.id).gt('points', 0).order('season_id').order('member').order('day')),
+  ]);
+  if (m.error || se.error) throw (m.error || se.error);
+  members = m.data;
+  me = members.find(x => session && x.user_id === session.user.id)?.name || null;
+  const seasons = {};
+  for (const s of se.data) {
+    seasons[s.id] = {
+      num: s.num, name: s.name, status: s.status, start: s.start_date, end: s.end_date, scoring: s.scoring,
+      maxPerDay: s.max_per_day == null ? null : Number(s.max_per_day), goal: s.goal == null ? null : Number(s.goal),
+      rules: s.rules || '', teams: s.teams || [], awards: s.awards || [], players: [], legacyPoints: {},
+    };
+  }
+  for (const r of ro) {
+    const s = seasons[r.season_id]; if (!s) continue;
+    s.players.push({ id: r.member, name: r.member, team: r.team });
+    if (r.final_points != null) s.legacyPoints[r.member] = Number(r.final_points);
+  }
+  const entries = {};
+  for (const d of dy) {
+    const k = d.season_id + '__' + d.member;
+    const e = entries[k] || (entries[k] = { days: {}, detail: {} });
+    e.days[d.day] = Number(d.points);
+    if (d.detail) e.detail[d.day] = d.detail;
+  }
+  S.seasons = seasons; S.entries = entries;
+}
+let reloadTimer;
+function scheduleReload() {
+  clearTimeout(reloadTimer);
+  reloadTimer = setTimeout(async () => {
+    try { await load(); } catch (e) { return; }
+    if (!me) { location.href = location.pathname; return; } // removed from the league meanwhile
+    if (S.draftFor && !S.seasons[S.draftFor]) S.draftFor = null;
+    render(); if (adminOpen()) renderLeagueAdmin();
+  }, 300);
+}
+// A day someone logged elsewhere: apply it straight away instead of reloading everything.
+function applyDayChange(row) {
+  if (!row || !row.season_id) return scheduleReload();
+  const k = row.season_id + '__' + row.member;
+  const e = S.entries[k] || (S.entries[k] = { days: {}, detail: {} });
+  if (Number(row.points) > 0) { e.days[row.day] = Number(row.points); if (row.detail) e.detail[row.day] = row.detail; else delete e.detail[row.day]; }
+  else { delete e.days[row.day]; delete e.detail[row.day]; }
+  render();
+}
+
+/* ---------- writes ---------- */
+function explain(error, fallback) {
+  if (error.code === 'P0001' || error.code === '42501') return error.message;
+  if (/row-level security/i.test(error.message)) return "That change isn't allowed for your account.";
+  if (/JWT|session/i.test(error.message)) return "You've been signed out. Refresh and sign in again.";
+  return fallback || "That change didn't save. Check your connection and try again.";
+}
+async function write(op, okMsg) {
+  const { data, error } = await op();
+  if (error) { toast(explain(error)); scheduleReload(); return null; }
+  if (okMsg) toast(typeof okMsg === 'function' ? okMsg(data) : okMsg);
+  scheduleReload();
+  return data ?? true;
+}
+const rpc = (fn, args, okMsg) => write(() => sb.rpc(fn, { l: league.id, ...args }), okMsg);
+
+/* ---------- derived ---------- */
+function seasonList() {
+  return Object.entries(S.seasons).map(([id, s]) => ({ id, ...s })).sort((a, b) => (b.num || 0) - (a.num || 0));
+}
+function season() { const s = S.seasons[S.seasonId]; return s ? { id: S.seasonId, ...s } : null; }
+function teamOf(s, tid) { return (s.teams || []).find(t => t.id === tid) || { id: tid, name: 'No team', color: '#8a93a3' }; }
+function daysOf(sid, pid) { return (S.entries[sid + '__' + pid] || {}).days || {}; }
+function detailOf(sid, pid) { return (S.entries[sid + '__' + pid] || {}).detail || {}; }
+function lastDate(s) {
+  let m = s.start || null;
+  for (const p of s.players || []) for (const d of Object.keys(daysOf(s.id, p.id))) if (!m || d > m) m = d;
+  return m;
+}
+function seasonRange(s) {
+  if (!s.start) return null;
+  let end = s.end;
+  if (!end) { const t = today(), l = lastDate(s); end = l && l > t ? l : t; }
+  if (end < s.start) end = s.start;
+  return { start: s.start, end };
+}
+function seasonDates(s) {
+  const r = seasonRange(s); if (!r) return [];
+  const out = []; for (let d = r.start; d <= r.end && out.length < 800; d = dAdd(d, 1)) out.push(d);
+  return out;
+}
+function seasonWeeks(s) {
+  const weeks = [];
+  for (const d of seasonDates(s)) {
+    const ws = weekStart(d);
+    if (!weeks.length || weeks[weeks.length - 1].ws !== ws) weeks.push({ ws, dates: [] });
+    weeks[weeks.length - 1].dates.push(d);
+  }
+  weeks.forEach((w, i) => { w.n = i + 1; w.label = `Week ${i + 1}`; w.range = `${dMonDay(w.dates[0])} – ${dMonDay(w.dates[w.dates.length - 1])}`; });
+  return weeks;
+}
+function stats(s) {
+  const legacy = s.scoring === 'legacy';
+  const t = today(), wk = weekStart(t);
+  const players = (s.players || []).map(p => {
+    const days = daysOf(s.id, p.id);
+    const total = legacy ? Number((s.legacyPoints || {})[p.id] || 0) : Object.values(days).reduce((a, b) => a + Number(b || 0), 0);
+    const active = Object.values(days).filter(v => v > 0).length;
+    let week = 0; for (const [d, v] of Object.entries(days)) if (d >= wk && d <= dAdd(wk, 6)) week += Number(v);
+    let streak = 0; let d = days[t] > 0 ? t : dAdd(t, -1);
+    while (days[d] > 0) { streak++; d = dAdd(d, -1); }
+    return { ...p, total, active, week, streak, days };
+  });
+  players.sort((a, b) => b.total - a.total || a.name.localeCompare(b.name));
+  let rank = 0, prev = null;
+  players.forEach((p, i) => { if (p.total !== prev) { rank = i + 1; prev = p.total; } p.rank = rank; });
+  const teams = (s.teams || []).map(tm => ({ ...tm, total: players.filter(p => p.team === tm.id).reduce((a, p) => a + p.total, 0) }));
+  const max = Math.max(0, ...teams.map(x => x.total));
+  teams.forEach(x => { x.leading = x.total === max && max > 0 && teams.length > 1; });
+  return { players, teams };
+}
+// Can I log points for this person in this season? (The database checks the same thing.)
+function canLogFor(s, name) {
+  if (!s || s.scoring === 'legacy' || !(s.players || []).some(p => p.id === name)) return false;
+  return isAdmin() || (s.status === 'active' && name === me);
+}
+
+/* ---------- rendering ---------- */
+function editing() {
+  const a = document.activeElement;
+  return a && $('main').contains(a) && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName);
+}
+function render(force) {
+  if (!league) return;
+  if (!force && editing()) { S.pendingRender = true; return; }
+  S.pendingRender = false;
+  const list = seasonList();
+  if (!S.seasonId || !S.seasons[S.seasonId]) {
+    const active = list.find(s => s.status === 'active');
+    S.seasonId = (active || list[0] || {}).id || null;
+  }
+  $('home').hidden = true; $('status').hidden = true; $('app').hidden = false;
+  renderTop(list); renderTitle(); renderTabs();
+  const main = $('main');
+  if (!list.length && S.view !== 'manage') { main.innerHTML = emptyLeague(); return; }
+  if (S.view === 'manage' && !isAdmin()) S.view = 'board';
+  const fn = { board: viewBoard, log: viewLog, grid: viewGrid, weekly: viewWeekly, fame: viewFame, manage: viewManage }[S.view] || viewBoard;
+  main.innerHTML = fn();
+  if (S.view === 'log') updateLogCalc();
+}
+document.addEventListener('focusout', () => setTimeout(() => { if (S.pendingRender && !editing()) render(); }, 0));
+
+const GEAR = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>';
+function renderTop(list) {
+  $('brand').textContent = league.name;
+  $('brand').href = leagueUrl(league.slug);
+  document.title = `${league.name} · Workout Gang`;
+  $('top-right').innerHTML = `
+    ${list.length ? `<select id="season-select" aria-label="Season">${list.map(s => `<option value="${esc(s.id)}"${s.id === S.seasonId ? ' selected' : ''}>S${esc(s.num)} · ${esc(s.name)}${s.status === 'active' ? ' (current)' : ''}</option>`).join('')}</select>` : ''}
+    ${me ? `<span class="you">You're <b>${esc(me)}</b></span>` : ''}
+    <button class="icon-btn" type="button" id="btn-settings" aria-label="Settings">${GEAR}</button>`;
+}
+function renderTitle() {
+  const s = season(); const el = $('title');
+  if (!s) { el.innerHTML = ''; return; }
+  const { teams } = stats(s);
+  const r = seasonRange(s);
+  const total = teams.reduce((a, t) => a + t.total, 0);
+  let meta = r ? `${dLong(r.start)} – ${s.end ? dLong(s.end) : 'ongoing'}` : 'Dates not recorded';
+  if (s.status === 'active' && r) { const n = Math.round((dParse(today()) - dParse(r.start)) / DAY) + 1; if (n > 0) meta += ` · Day ${n}`; }
+  meta += ` · ${plural((s.players || []).length, 'player')}`;
+  const showTeams = teams.length > 1;
+  el.innerHTML = `<section class="card-title">
+    <div class="eyebrow">Season ${esc(s.num)}${s.status === 'active' ? ' · now playing' : ' · final'}</div>
+    <h1>${esc(s.name)}</h1>
+    <div class="meta">${esc(meta)}</div>
+    ${showTeams ? `<div class="versus">
+      <div class="vs-row">${teams.map(t => `<div class="vs-team" style="--team:${esc(t.color)}">
+        <span class="nm"><i></i>${esc(t.name)}</span>
+        <span class="sc num">${fmtN(t.total)}</span>
+        <span class="lead">${t.leading ? (s.status === 'active' ? 'In the lead' : 'Winner') : ''}</span></div>`).join('')}</div>
+      <div class="vs-bar" role="img" aria-label="Each team's share of the points">${teams.map(t => `<span style="--team:${esc(t.color)};flex-grow:${total ? t.total : 1}"></span>`).join('')}</div>
+      ${s.goal ? `<div class="goal">Point goal: ${fmtN(s.goal)} · ${teams.map(t => `${esc(t.name)} ${Math.min(100, Math.round(t.total / s.goal * 100))}%`).join(' · ')}</div>` : ''}
+    </div>` : ''}
+  </section>`;
+}
+function renderTabs() {
+  $('tabs').innerHTML = VIEWS.filter(([v]) => v !== 'manage' || isAdmin())
+    .map(([v, l]) => `<a href="#${v}" ${S.view === v ? 'aria-current="page"' : ''}>${l}</a>`).join('');
+}
+function emptyLeague() {
+  return `<div class="panel status-box"><strong>No seasons yet</strong>
+    <p class="muted">${isAdmin() ? 'Start the first season to set teams, players and scoring.' : 'An admin will start the first season soon.'}</p>
+    ${isAdmin() ? '<p style="margin-top:12px"><a class="btn primary" href="#manage">Start a season</a></p>' : ''}</div>`;
+}
+function legacyNotice(s) {
+  return `<div class="notice">Season ${esc(s.num)} used weekly goals and weight tracking, so only the final standings were kept. See the Scoreboard and Hall of Fame.</div>`;
+}
+
+/* --- scoreboard --- */
+function spark(p, s) {
+  const t = today(); const r = seasonRange(s); if (!r) return '';
+  const end = s.status === 'active' && t < r.end ? t : r.end;
+  const cap = s.maxPerDay || 6; let out = '';
+  for (let i = 13; i >= 0; i--) {
+    const d = dAdd(end, -i); const v = Number(p.days[d] || 0);
+    out += v > 0 ? `<i style="height:${Math.max(3, Math.round(v / cap * 22))}px" title="${dShort(d)}: ${v}"></i>` : `<i class="z" title="${dShort(d)}: 0"></i>`;
+  }
+  return `<span class="spark" aria-label="Last 14 days">${out}</span>`;
+}
+function viewBoard() {
+  const s = season(); const { players } = stats(s);
+  const legacy = s.scoring === 'legacy';
+  const t = today();
+  const rows = players.map(p => {
+    const tm = teamOf(s, p.team);
+    const cls = p.rank <= 3 && p.total > 0 ? ' g' + p.rank : '';
+    return `<tr class="${p.id === me ? 'me-row' : ''}">
+      <td><span class="rank${cls}">${p.rank}</span></td>
+      <td><span class="pl" style="--team:${esc(tm.color)}"><span class="dot"></span>${esc(p.name)}</span></td>
+      <td class="r total">${fmtN(p.total)}</td>
+      ${legacy ? '' : `<td class="r">${fmtN(p.week)}</td><td class="r">${p.active}</td><td class="r">${p.streak ? p.streak + 'd' : '–'}</td><td style="--team:${esc(tm.color)}">${spark(p, s)}</td>`}
+    </tr>`;
+  }).join('');
+  let todayPanel = '';
+  if (s.status === 'active' && !legacy) {
+    const chips = players.slice().sort((a, b) => a.name.localeCompare(b.name)).map(p => {
+      const v = Number(p.days[t] || 0); const tm = teamOf(s, p.team);
+      return `<span class="chip${v ? '' : ' off'}" style="--team:${esc(tm.color)}"><span class="dot"></span>${esc(p.name)}${v ? ` <b>${fmtN(v)}</b>` : ''}</span>`;
+    }).join('');
+    todayPanel = `<section class="panel"><div class="row between"><h3>Today · ${esc(dShort(t))}</h3>${canLogFor(s, me) || isAdmin() ? '<a class="btn small primary" href="#log">Log a day</a>' : ''}</div>
+      <p class="muted" style="margin:6px 0 10px">Faded names have nothing logged yet today.</p><div class="chips">${chips}</div></section>`;
+  }
+  return `<div class="grid2">
+    <section class="panel"><h2 style="margin-bottom:8px">Personal leaderboard</h2>
+      <div class="scroll"><table>
+        <thead><tr><th>#</th><th>Player</th><th class="r">Points</th>${legacy ? '' : '<th class="r">This week</th><th class="r">Days</th><th class="r">Streak</th><th>Last 14 days</th>'}</tr></thead>
+        <tbody>${rows || '<tr><td colspan="7" class="muted">No players yet.</td></tr>'}</tbody></table></div></section>
+    <div class="stack">${todayPanel}${rulesPanel(s)}</div>
+  </div>`;
+}
+function rulesPanel(s) {
+  let pts = '';
+  if (s.scoring === 'steps') pts = `<div class="rules-points"><b>+1</b><span>per 10k steps, up to 3 (30k steps)</span><b>+3</b><span>workout, 30 min minimum</span><b>${esc(s.maxPerDay || 6)}</b><span>max points per day</span></div>`;
+  if (s.scoring === 'tiers') pts = `<div class="rules-points"><b>+1</b><span>30 min walk or low intensity</span><b>+2</b><span>30 min bodyweight or medium intensity</span><b>+3</b><span>gym or high intensity</span></div>`;
+  return `<section class="panel"><h3>Rules</h3>${pts}${s.rules ? `<p class="rules" style="margin-top:12px">${esc(s.rules)}</p>` : ''}</section>`;
+}
+
+/* --- log a day --- */
+function computePts(s, f) {
+  const cap = Number(s.maxPerDay) || Infinity;
+  let raw = 0;
+  if (s.scoring === 'steps') raw = Math.min(Math.floor((Number(f.steps) || 0) / 10000), 3) + (f.workout ? 3 : 0);
+  else if (s.scoring === 'tiers') raw = (f.walk ? 1 : 0) + (f.bw ? 2 : 0) + (f.gym ? 3 : 0);
+  else raw = Number(f.manual) || 0;
+  return Math.max(0, Math.min(raw, cap, 100));
+}
+function loadLogFor(s, pid, date) {
+  const v = Number(daysOf(s.id, pid)[date] || 0);
+  const det = detailOf(s.id, pid)[date] || {};
+  const f = { player: pid, date, steps: det.steps ?? '', workout: !!det.workout, walk: !!det.walk, bw: !!det.bw, gym: !!det.gym, manual: v || '' };
+  // Older days without a breakdown: start from a sensible guess.
+  if (v && !Object.keys(det).length) {
+    if (s.scoring === 'tiers') { let r = v; f.gym = r >= 3; if (f.gym) r -= 3; f.bw = r >= 2; if (f.bw) r -= 2; f.walk = r >= 1; }
+    if (s.scoring === 'steps') { f.workout = v >= 3; f.steps = (v - (f.workout ? 3 : 0)) * 10000 || ''; }
+  }
+  S.log = { sid: s.id, ...f };
+}
+function viewLog() {
+  const s = season();
+  if (s.scoring === 'legacy') return legacyNotice(s);
+  const who = (s.players || []).filter(p => canLogFor(s, p.id));
+  if (!who.length) {
+    if (s.status !== 'active') return `<div class="notice">Season ${esc(s.num)} is finished. Only admins can change its points.</div>`;
+    return `<div class="notice">You're not playing in Season ${esc(s.num)}. Ask an admin to add you to it.</div>`;
+  }
+  const r = seasonRange(s);
+  let date = today(); if (r && date > r.end) date = r.end; if (r && date < r.start) date = r.start;
+  const keep = S.log && S.log.sid === s.id && who.some(p => p.id === S.log.player);
+  const pid = keep ? S.log.player : (who.some(p => p.id === me) ? me : who[0].id);
+  if (!keep) loadLogFor(s, pid, (S.log && S.log.sid === s.id && S.log.date) || date);
+  const f = S.log;
+  let inputs = '';
+  if (s.scoring === 'steps') {
+    inputs = `<div class="field"><label for="log-steps">Steps</label>
+      <input id="log-steps" type="number" inputmode="numeric" min="0" step="100" value="${esc(f.steps)}" placeholder="e.g. 12500" style="max-width:220px">
+      <div class="row" style="gap:8px"><span class="steps-meter" id="steps-meter"><i></i><i></i><i></i></span><span class="help">1 point per 10k, up to 3</span></div></div>
+      <div class="field"><span class="lbl">Workout</span><div class="toggles">
+      <button type="button" class="toggle" data-tog="workout" aria-pressed="${f.workout}"><b>+3</b><small>30+ min workout</small></button></div></div>`;
+  } else if (s.scoring === 'tiers') {
+    inputs = `<div class="field"><span class="lbl">What did you do?</span><div class="toggles">
+      <button type="button" class="toggle" data-tog="walk" aria-pressed="${f.walk}"><b>+1</b><small>30 min walk / low</small></button>
+      <button type="button" class="toggle" data-tog="bw" aria-pressed="${f.bw}"><b>+2</b><small>Bodyweight / medium</small></button>
+      <button type="button" class="toggle" data-tog="gym" aria-pressed="${f.gym}"><b>+3</b><small>Gym / high intensity</small></button></div></div>`;
+  } else {
+    inputs = `<div class="field"><label for="log-manual">Points</label><input id="log-manual" type="number" min="0" step="0.5" value="${esc(f.manual)}" style="max-width:160px"></div>`;
+  }
+  const days = daysOf(s.id, pid);
+  const last = r && today() > r.end ? r.end : today();
+  const recent = seasonDates(s).filter(d => d <= last).reverse().slice(0, 14)
+    .map(d => `<button type="button" data-pick="${d}" class="${d === f.date ? 'sel' : ''}"><span>${dShort(d)}</span><b class="num">${days[d] ? fmtN(days[d]) : '–'}</b></button>`).join('');
+  return `<div class="grid2">
+    <section class="panel"><form class="log-form" id="log-form" novalidate>
+      <h2>Log a day</h2>
+      <div class="form-grid">
+        <div class="field"><label for="log-player">Player</label><select id="log-player"${who.length < 2 ? ' disabled' : ''}>${who.map(p => `<option value="${esc(p.id)}"${p.id === pid ? ' selected' : ''}>${esc(p.name)}</option>`).join('')}</select></div>
+        <div class="field"><label for="log-date">Date</label><input id="log-date" type="date" value="${esc(f.date)}" ${r ? `min="${r.start}"` : ''} max="${esc(last)}"></div>
+      </div>
+      ${inputs}
+      <div class="calc"><span class="big num" id="log-total">0</span><span id="log-explain" class="muted"></span></div>
+      <div class="row"><button class="btn primary" type="submit">Save points</button>
+        ${days[f.date] ? '<button class="btn danger" type="button" id="log-clear">Clear this day</button>' : ''}</div>
+    </form></section>
+    <div class="stack"><section class="panel"><h3>${esc(pid)} · last 14 days</h3>
+      <p class="help" style="margin:4px 0 8px">Pick a day to change it.</p><div class="recent">${recent}</div></section></div>
+  </div>`;
+}
+function updateLogCalc() {
+  const s = season(); const f = S.log; if (!s || !f || !$('log-total')) return;
+  const v = computePts(s, f);
+  $('log-total').textContent = fmtN(v);
+  let ex = '';
+  if (s.scoring === 'steps') {
+    const sp = Math.min(Math.floor((Number(f.steps) || 0) / 10000), 3);
+    ex = `${sp} from steps${f.workout ? ' + 3 workout' : ''}`;
+    document.querySelectorAll('#steps-meter i').forEach((el, i) => el.classList.toggle('on', i < sp));
+  } else if (s.scoring === 'tiers') {
+    ex = [f.walk && 'walk', f.bw && 'bodyweight', f.gym && 'gym'].filter(Boolean).join(' + ') || 'nothing picked yet';
+  } else ex = 'points';
+  const cap = Number(s.maxPerDay);
+  if (cap && v === cap) ex += ` · daily max is ${cap}`;
+  $('log-explain').textContent = ex;
+}
+
+/* --- sheet grid --- */
+function viewGrid() {
+  const s = season();
+  if (s.scoring === 'legacy') return legacyNotice(s);
+  const players = s.players || [];
+  if (!players.length) return `<div class="notice">No players in this season yet.</div>`;
+  const weeks = seasonWeeks(s); const t = today();
+  const totals = Object.fromEntries(stats(s).players.map(p => [p.id, p.total]));
+  const cap = s.maxPerDay || 6;
+  const anyEditable = players.some(p => canLogFor(s, p.id));
+  let body = '';
+  for (const w of weeks) {
+    const tw = (s.teams || []).map(tm => {
+      let sum = 0; for (const p of players.filter(p => p.team === tm.id)) for (const d of w.dates) sum += Number(daysOf(s.id, p.id)[d] || 0);
+      return `${esc(tm.name)} ${fmtN(sum)}`;
+    }).join(' · ');
+    body += `<tr class="wk"><td class="dcol">${w.label}</td><td colspan="${players.length}" style="text-align:left;padding-left:10px">${esc(w.range)} · ${tw}</td></tr>`;
+    for (const d of w.dates) {
+      body += `<tr class="${d === t ? 'today' : ''}"><td class="dcol">${dShort(d)}</td>` + players.map(p => {
+        const v = Number(daysOf(s.id, p.id)[d] || 0); const tm = teamOf(s, p.team);
+        const bg = v ? `background:color-mix(in srgb, ${tm.color} ${Math.round(10 + 45 * Math.min(v, cap) / cap)}%, transparent)` : '';
+        const ok = canLogFor(s, p.id) && d <= t;
+        return `<td class="cell" style="${bg}"><button type="button" data-cell="${esc(p.id)}|${d}" ${ok ? '' : 'disabled'} aria-label="${esc(p.name)} ${dShort(d)}">${v ? fmtN(v) : ''}</button></td>`;
+      }).join('') + '</tr>';
+    }
+  }
+  return `<div class="row between" style="margin-bottom:10px"><h2>Season sheet</h2><span class="help">${anyEditable ? (isAdmin() ? 'Click any cell to type points. Enter saves, Esc cancels.' : 'Click a cell in your column to type points. Enter saves, Esc cancels.') : 'View only.'}</span></div>
+  <div class="sheet-wrap"><table class="sheet">
+    <thead><tr><th class="dcol">Date</th>${players.map(p => `<th style="--team:${esc(teamOf(s, p.team).color)}">${esc(p.name)}</th>`).join('')}</tr></thead>
+    <tbody>${body}</tbody>
+    <tfoot><tr><td class="dcol">Total</td>${players.map(p => `<td>${fmtN(totals[p.id] || 0)}</td>`).join('')}</tr></tfoot>
+  </table></div>`;
+}
+function editCell(btn) {
+  const [pid, date] = btn.dataset.cell.split('|');
+  const s = season(); const cur = daysOf(s.id, pid)[date] || '';
+  const td = btn.parentElement;
+  td.innerHTML = `<input type="number" min="0" max="100" step="0.5" value="${esc(cur)}" id="cell-edit" aria-label="Points">`;
+  const inp = td.firstChild; inp.focus(); inp.select();
+  let done = false;
+  const finish = save => {
+    if (done) return; done = true;
+    if (save) {
+      const v = inp.value === '' ? 0 : Number(inp.value);
+      if (!isNaN(v) && v >= 0 && v <= 100 && v !== Number(cur || 0)) setDay(s, pid, date, v, null);
+    }
+    render(true);
+  };
+  inp.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); finish(true); } if (e.key === 'Escape') finish(false); });
+  inp.addEventListener('blur', () => finish(true));
+}
+// Save one person's day. 0 clears it (the row stays, at 0, so live updates reach everyone).
+async function setDay(s, pid, date, pts, detail) {
+  const k = s.id + '__' + pid;
+  const e = S.entries[k] || (S.entries[k] = { days: {}, detail: {} });
+  const before = { v: e.days[date], d: e.detail[date] };
+  if (pts > 0) { e.days[date] = pts; if (detail) e.detail[date] = detail; else delete e.detail[date]; }
+  else { delete e.days[date]; delete e.detail[date]; }
+  render();
+  const { error } = await sb.from('wg_days').upsert(
+    { season_id: s.id, league_id: league.id, member: pid, day: date, points: pts > 0 ? pts : 0, detail: pts > 0 ? detail : null },
+    { onConflict: 'season_id,member,day' });
+  if (error) {
+    if (before.v) e.days[date] = before.v; else delete e.days[date];
+    if (before.d) e.detail[date] = before.d; else delete e.detail[date];
+    toast(explain(error)); render();
+    return false;
+  }
+  return true;
+}
+
+/* --- weekly --- */
+function viewWeekly() {
+  const s = season();
+  if (s.scoring === 'legacy') return legacyNotice(s);
+  const weeks = seasonWeeks(s); const teams = s.teams || []; const players = s.players || [];
+  if (!weeks.length) return `<div class="notice">No weeks to show yet.</div>`;
+  const data = weeks.map(w => {
+    const per = {}; const pp = {};
+    for (const p of players) { let sum = 0; for (const d of w.dates) sum += Number(daysOf(s.id, p.id)[d] || 0); pp[p.id] = sum; per[p.team] = (per[p.team] || 0) + sum; }
+    const max = Math.max(0, ...teams.map(t => per[t.id] || 0));
+    const winners = teams.filter(t => max > 0 && (per[t.id] || 0) === max);
+    const topVal = Math.max(0, ...Object.values(pp));
+    const mvp = players.filter(p => topVal > 0 && pp[p.id] === topVal);
+    return { w, per, winners, mvp, topVal };
+  });
+  const W = 760, H = 260, L = 40, B = 34, T = 12;
+  const maxV = Math.max(10, ...data.flatMap(x => teams.map(t => x.per[t.id] || 0)));
+  const step = maxV > 200 ? 50 : maxV > 80 ? 20 : maxV > 40 ? 10 : 5;
+  const top = Math.ceil(maxV / step) * step;
+  const y = v => T + (H - T - B) * (1 - v / top);
+  const gw = (W - L - 8) / data.length; const bw = Math.max(3, Math.min(22, (gw - 6) / Math.max(1, teams.length)));
+  let svg = '';
+  for (let v = 0; v <= top; v += step) svg += `<line x1="${L}" x2="${W - 4}" y1="${y(v)}" y2="${y(v)}" stroke="var(--line)" stroke-width="1"/><text x="${L - 6}" y="${y(v) + 4}" text-anchor="end">${v}</text>`;
+  data.forEach((x, i) => {
+    const gx = L + i * gw + (gw - bw * teams.length) / 2;
+    teams.forEach((t, j) => { const v = x.per[t.id] || 0; svg += `<rect x="${gx + j * bw}" y="${y(v)}" width="${bw - 1}" height="${Math.max(0, y(0) - y(v))}" fill="${esc(t.color)}" rx="2"><title>${esc(t.name)} · ${x.w.label}: ${fmtN(v)}</title></rect>`; });
+    if (data.length <= 20 || i % 2 === 0) svg += `<text x="${L + i * gw + gw / 2}" y="${H - B + 16}" text-anchor="middle">W${x.w.n}</text>`;
+  });
+  const won = Object.fromEntries(teams.map(t => [t.id, data.filter(x => x.winners.length === 1 && x.winners[0].id === t.id).length]));
+  const rows = data.slice().reverse().map(x => `<tr><td>${x.w.label}</td><td class="muted">${esc(x.w.range)}</td>
+    ${teams.map(t => `<td class="r">${fmtN(x.per[t.id] || 0)}</td>`).join('')}
+    <td>${x.winners.length === 1 ? `<span class="pl" style="--team:${esc(x.winners[0].color)}"><span class="dot"></span>${esc(x.winners[0].name)}</span>` : x.winners.length ? 'Tie' : '–'}</td>
+    <td>${x.mvp.length ? esc(x.mvp.map(p => p.name).join(', ')) + ` <span class="muted">(${fmtN(x.topVal)})</span>` : '–'}</td></tr>`).join('');
+  return `<div class="stack"><section class="panel"><div class="row between"><h2>Team points by week</h2>
+      <div class="legend">${teams.map(t => `<span style="--team:${esc(t.color)}"><span class="dot"></span>${esc(t.name)} · ${plural(won[t.id], 'week')} won</span>`).join('')}</div></div>
+      <div class="chart scroll" style="margin-top:10px"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Team points each week">${svg}</svg></div></section>
+    <section class="panel"><h3>Week by week</h3><div class="scroll"><table>
+      <thead><tr><th>Week</th><th>Dates</th>${teams.map(t => `<th class="r">${esc(t.name)}</th>`).join('')}<th>Winner</th><th>Weekly MVP</th></tr></thead>
+      <tbody>${rows}</tbody></table></div></section></div>`;
+}
+
+/* --- hall of fame --- */
+function viewFame() {
+  const allTime = {};
+  const cards = seasonList().map(s => {
+    const { players, teams } = stats(s);
+    const final = s.status !== 'active';
+    const champs = teams.filter(t => t.leading);
+    players.forEach(p => {
+      const k = p.name.trim().toLowerCase();
+      const a = allTime[k] || (allTime[k] = { name: p.name, seasons: 0, titles: 0, podiums: 0, best: Infinity });
+      a.seasons++; if (p.rank <= 3 && p.total > 0) a.podiums++; a.best = Math.min(a.best, p.rank);
+      if (final && champs.length === 1 && champs[0].id === p.team) a.titles++;
+    });
+    const pod = players.slice(0, 3).map(p => `<div><span class="rank g${p.rank <= 3 ? p.rank : ''}">${p.rank}</span><span class="pl" style="--team:${esc(teamOf(s, p.team).color)}"><span class="dot"></span>${esc(p.name)}</span><span class="pts">${fmtN(p.total)} pts</span></div>`).join('');
+    const teamLine = teams.length > 1 ? `<div>${champs.length === 1 ? `<span class="champ" style="--team:${esc(champs[0].color)}"><span class="dot"></span>${esc(champs[0].name)} ${final ? 'won' : 'leads'}</span>` : ''}
+      <div class="help" style="margin-top:6px">${teams.slice().sort((a, b) => b.total - a.total).map(t => `${esc(t.name)} ${fmtN(t.total)}`).join(' · ')}</div></div>` : '';
+    const aw = (s.awards || []).map(a => `<div><span>${esc(a.title)}</span><span>${esc(a.winner)}</span></div>`).join('');
+    return `<article class="season-card"><div><div class="eyebrow">Season ${esc(s.num)}${final ? '' : ' · in progress'}</div><div class="ep">${esc(s.name)}</div></div>
+      ${teamLine}<div class="podium">${pod || '<span class="muted">No players.</span>'}</div>${aw ? `<div class="awards">${aw}</div>` : ''}</article>`;
+  }).join('');
+  const at = Object.values(allTime).sort((a, b) => b.titles - a.titles || b.podiums - a.podiums || a.best - b.best || b.seasons - a.seasons).slice(0, 30);
+  return `<h2 style="margin-bottom:12px">Hall of Fame</h2><div class="fame">${cards}</div>
+    <section class="panel" style="margin-top:20px"><h3>All-time</h3><p class="help" style="margin:4px 0 8px">Scoring changed between seasons, so this counts finishes, not points.</p>
+    <div class="scroll"><table><thead><tr><th>Player</th><th class="r">Seasons</th><th class="r">Team titles</th><th class="r">Top-3 finishes</th><th class="r">Best finish</th></tr></thead>
+    <tbody>${at.map(a => `<tr><td><b>${esc(a.name)}</b></td><td class="r">${a.seasons}</td><td class="r">${a.titles}</td><td class="r">${a.podiums}</td><td class="r">${a.best === Infinity ? '–' : '#' + a.best}</td></tr>`).join('')}</tbody></table></div></section>`;
+}
+
+/* --- manage seasons (admins) --- */
+function ensureDraft() {
+  const s = season();
+  if (!s) { S.draft = null; S.draftFor = null; return; }
+  if (S.draftFor !== s.id) {
+    const d = clone(S.seasons[s.id]);
+    d.players = d.players.map(p => ({ name: p.name, team: p.team, legacy: d.legacyPoints[p.id] ?? '' }));
+    S.draft = d; S.draftFor = s.id;
+  }
+}
+function confirmBtn(key, label) {
+  return S.confirm === key ? `<button type="button" class="btn small danger" data-act="${key}" data-sure="1">Click again to confirm</button>`
+    : `<button type="button" class="btn small danger" data-act="${key}">${label}</button>`;
+}
+function viewManage() {
+  ensureDraft();
+  const d = S.draft;
+  const ns = S.newSeason || (S.newSeason = { name: '', start: today(), scoring: 'steps', copy: true, finishOld: true });
+  const newForm = `<section class="panel"><h3>Start a new season</h3>
+    <div class="form-grid" style="margin-top:10px">
+      <div class="field"><label for="ns-name">Season name</label><input id="ns-name" type="text" maxlength="80" data-ns="name" value="${esc(ns.name)}" placeholder="The Training Arc"></div>
+      <div class="field"><label for="ns-start">Start date</label><input id="ns-start" type="date" data-ns="start" value="${esc(ns.start)}"></div>
+      <div class="field"><label for="ns-scoring">Scoring</label><select id="ns-scoring" data-ns="scoring">${['steps', 'tiers', 'manual'].map(k => `<option value="${k}"${ns.scoring === k ? ' selected' : ''}>${SCORING[k]}</option>`).join('')}</select></div>
+    </div>
+    ${d ? `<div class="row" style="margin-top:10px"><label class="check"><input type="checkbox" id="ns-copy" data-ns="copy" ${ns.copy ? 'checked' : ''}> Same teams and players as Season ${esc(d.num)}</label>
+    <label class="check"><input type="checkbox" id="ns-finish" data-ns="finishOld" ${ns.finishOld ? 'checked' : ''}> Mark the current season finished</label></div>` : ''}
+    <div class="row" style="margin-top:12px"><button type="button" class="btn primary" data-act="create">Start season</button></div></section>`;
+  if (!d) return newForm;
+  const teamOpts = tid => (d.teams || []).map(t => `<option value="${esc(t.id)}"${t.id === tid ? ' selected' : ''}>${esc(t.name)}</option>`).join('');
+  const legacy = d.scoring === 'legacy';
+  const onRoster = new Set(d.players.map(p => p.name));
+  const addable = members.filter(m => !onRoster.has(m.name));
+  return `<div class="grid2"><div class="stack">
+    <section class="panel"><div class="row between"><h2>Season ${esc(d.num)} settings</h2><button type="button" class="btn primary" data-act="save">Save changes</button></div>
+      <div class="form-grid" style="margin-top:12px">
+        <div class="field"><label for="m-name">Name</label><input id="m-name" type="text" maxlength="80" data-f="name" value="${esc(d.name)}"></div>
+        <div class="field"><label for="m-num">Season number</label><input id="m-num" type="number" min="1" max="999" data-f="num" value="${esc(d.num)}"></div>
+        <div class="field"><label for="m-status">Status</label><select id="m-status" data-f="status"><option value="active"${d.status === 'active' ? ' selected' : ''}>Current season</option><option value="finished"${d.status !== 'active' ? ' selected' : ''}>Finished</option></select></div>
+        <div class="field"><label for="m-start">Start date</label><input id="m-start" type="date" data-f="start" value="${esc(d.start || '')}"></div>
+        <div class="field"><label for="m-end">End date</label><input id="m-end" type="date" data-f="end" value="${esc(d.end || '')}"></div>
+        ${legacy ? '' : `<div class="field"><label for="m-scoring">Scoring</label><select id="m-scoring" data-f="scoring">${['steps', 'tiers', 'manual'].map(k => `<option value="${k}"${d.scoring === k ? ' selected' : ''}>${SCORING[k]}</option>`).join('')}</select></div>
+        <div class="field"><label for="m-max">Max points per day</label><input id="m-max" type="number" min="0" data-f="maxPerDay" value="${esc(d.maxPerDay ?? '')}"></div>
+        <div class="field"><label for="m-goal">Team point goal (optional)</label><input id="m-goal" type="number" min="0" data-f="goal" value="${esc(d.goal ?? '')}"></div>`}
+      </div>
+      <div class="field" style="margin-top:12px"><label for="m-rules">Rules</label><textarea id="m-rules" maxlength="4000" data-f="rules">${esc(d.rules || '')}</textarea></div>
+    </section>
+    <section class="panel"><h3>Players</h3>
+      <div class="edit-list" style="margin-top:10px">${d.players.map((p, i) => `<div class="edit-row">
+        <span style="flex:1 1 140px;font-weight:600">${esc(p.name)}</span>
+        <select aria-label="Team for ${esc(p.name)}" data-pl="${i}" data-k="team">${teamOpts(p.team)}</select>
+        ${legacy ? `<input type="number" aria-label="Final points for ${esc(p.name)}" style="width:100px;flex:none" data-pl="${i}" data-k="legacy" value="${esc(p.legacy)}">` : ''}
+        ${confirmBtn('rm-player-' + i, 'Remove')}</div>`).join('') || '<span class="muted">No players yet.</span>'}</div>
+      <div class="inline" style="margin-top:12px">
+        <div class="field"><label for="m-add">Add a player</label><select id="m-add"><option value="">Pick someone…</option>${addable.map(m => `<option value="${esc(m.name)}">${esc(m.name)}${m.user_id ? '' : ' (not joined yet)'}</option>`).join('')}<option value="+new">Someone new…</option></select></div>
+        <div class="field" id="m-add-new-field" hidden><label for="m-add-new">Their name</label><input id="m-add-new" type="text" maxlength="30"></div>
+        <button type="button" class="btn small" data-act="add-player">Add</button>
+      </div>
+      <p class="help" style="margin-top:8px">Removing someone from the season hides their points here but keeps them; adding them back brings them back. Changes save with "Save changes".</p>
+    </section></div>
+    <div class="stack">
+    <section class="panel"><div class="row between"><h3>Teams</h3><button type="button" class="btn small" data-act="add-team">Add team</button></div>
+      <div class="edit-list" style="margin-top:10px">${(d.teams || []).map((t, i) => `<div class="edit-row">
+        <input type="color" aria-label="Team color" data-tm="${i}" data-k="color" value="${esc(t.color)}">
+        <input type="text" maxlength="40" aria-label="Team name" data-tm="${i}" data-k="name" value="${esc(t.name)}">
+        ${(d.teams || []).length > 1 ? confirmBtn('rm-team-' + i, 'Remove') : ''}</div>`).join('')}</div></section>
+    <section class="panel"><div class="row between"><h3>Awards</h3><button type="button" class="btn small" data-act="add-award">Add award</button></div>
+      <div class="edit-list" style="margin-top:10px">${(d.awards || []).map((a, i) => `<div class="edit-row">
+        <input type="text" maxlength="60" aria-label="Award" placeholder="Award" data-aw="${i}" data-k="title" value="${esc(a.title)}">
+        <input type="text" maxlength="60" aria-label="Winner" placeholder="Winner" data-aw="${i}" data-k="winner" value="${esc(a.winner)}">
+        <button type="button" class="btn small danger" data-act="rm-award-${i}">Remove</button></div>`).join('') || '<span class="muted">No awards yet. Add them when the season ends.</span>'}</div></section>
+    ${newForm}
+    <section class="panel"><h3>Delete this season</h3>
+      <p class="help" style="margin:6px 0 10px">Deletes Season ${esc(d.num)} with every point logged in it, for everyone. This can't be undone.</p>
+      ${confirmBtn('delete-season', 'Delete Season ' + esc(d.num))}</section>
+    </div></div>`;
+}
+async function manageAct(act, sure) {
+  const d = S.draft;
+  if (act.startsWith('rm-player-') || act.startsWith('rm-team-') || act === 'delete-season') {
+    if (!sure) { S.confirm = act; render(true); return; }
+  }
+  S.confirm = null;
+  if (act === 'save') return saveDraft();
+  if (act === 'create') return createSeason();
+  if (act === 'delete-season') return deleteSeason();
+  if (act === 'add-player') {
+    let name = $('m-add').value;
+    if (name === '+new') {
+      name = $('m-add-new').value.trim();
+      if (!name) return toast('Type their name.');
+      if (!(await rpc('wg_admin_add_member', { new_name: name }))) return;
+      members.push({ name, user_id: null, role: 'member' });
+    }
+    if (!name) return toast('Pick who to add.');
+    if (!d.players.some(p => p.name === name)) d.players.push({ name, team: (d.teams[0] || {}).id, legacy: '' });
+  }
+  else if (act === 'add-team') { const i = d.teams.length; d.teams.push({ id: 't' + Date.now().toString(36), name: 'Team ' + (i + 1), color: PALETTE[i % PALETTE.length] }); }
+  else if (act === 'add-award') { d.awards.push({ title: '', winner: '' }); }
+  else if (act.startsWith('rm-player-')) d.players.splice(Number(act.slice(10)), 1);
+  else if (act.startsWith('rm-team-')) { const [t] = d.teams.splice(Number(act.slice(8)), 1); d.players.forEach(p => { if (p.team === t.id) p.team = d.teams[0].id; }); }
+  else if (act.startsWith('rm-award-')) d.awards.splice(Number(act.slice(9)), 1);
+  render(true);
+}
+const numOrNull = v => v === '' || v == null || isNaN(Number(v)) ? null : Number(v);
+async function saveDraft() {
+  const id = S.draftFor, d = S.draft, old = S.seasons[id];
+  if (!d.name.trim()) return toast('The season needs a name.');
+  if (d.start && d.end && d.end < d.start) return toast('The end date is before the start date.');
+  const row = {
+    num: Math.max(1, Math.round(Number(d.num)) || 1), name: d.name.trim(), status: d.status,
+    start_date: d.start || null, end_date: d.end || null, scoring: d.scoring,
+    max_per_day: numOrNull(d.maxPerDay), goal: numOrNull(d.goal), rules: d.rules || '',
+    teams: d.teams.map(t => ({ id: t.id, name: t.name.trim() || 'Team', color: t.color })),
+    awards: d.awards.filter(a => a.title.trim() || a.winner.trim()).map(a => ({ title: a.title.trim(), winner: a.winner.trim() })),
+  };
+  if (row.status === 'active') {
+    const others = seasonList().filter(s => s.id !== id && s.status === 'active');
+    for (const o of others) await sb.from('wg_seasons').update({ status: 'finished', end_date: o.end || lastDate(o) }).eq('id', o.id);
+  }
+  const { error } = await sb.from('wg_seasons').update(row).eq('id', id);
+  if (error) { toast(explain(error)); return; }
+  const roster = d.players.map((p, i) => ({ season_id: id, league_id: league.id, member: p.name, team: p.team, position: i, final_points: d.scoring === 'legacy' ? numOrNull(p.legacy) : null }));
+  const gone = old.players.map(p => p.name).filter(n => !d.players.some(p => p.name === n));
+  if (roster.length) {
+    const { error: e1 } = await sb.from('wg_roster').upsert(roster, { onConflict: 'season_id,member' });
+    if (e1) { toast(explain(e1)); scheduleReload(); return; }
+  }
+  if (gone.length) {
+    const { error: e2 } = await sb.from('wg_roster').delete().eq('season_id', id).in('member', gone);
+    if (e2) { toast(explain(e2)); scheduleReload(); return; }
+  }
+  toast(`Saved Season ${row.num}`);
+  S.draftFor = null;
+  scheduleReload();
+}
+async function createSeason() {
+  const ns = S.newSeason; const cur = season();
+  if (!ns.name.trim()) { toast('Give the new season a name first.'); $('ns-name')?.focus(); return; }
+  const num = Math.max(0, ...seasonList().map(s => Number(s.num) || 0)) + 1;
+  const copy = ns.copy && cur && cur.scoring !== 'legacy';
+  const teams = copy ? clone(cur.teams) : [{ id: 'red', name: 'Red Team', color: PALETTE[0] }, { id: 'blue', name: 'Blue Team', color: PALETTE[1] }];
+  if (ns.finishOld) {
+    for (const o of seasonList().filter(s => s.status === 'active')) {
+      const { error } = await sb.from('wg_seasons').update({ status: 'finished', end_date: o.end || lastDate(o) }).eq('id', o.id);
+      if (error) { toast(explain(error)); return; }
+    }
+  }
+  const { data, error } = await sb.from('wg_seasons').insert({
+    league_id: league.id, num, name: ns.name.trim(), status: 'active', start_date: ns.start || today(), scoring: ns.scoring,
+    max_per_day: ns.scoring === 'manual' ? null : 6, rules: ns.scoring === 'steps' ? STEPS_RULES : ns.scoring === 'tiers' ? TIER_RULES : '', teams, awards: [],
+  }).select('id').single();
+  if (error) { toast(explain(error)); scheduleReload(); return; }
+  const players = copy ? cur.players : (me ? [{ id: me, team: teams[0].id }] : []);
+  if (players.length) {
+    const { error: e2 } = await sb.from('wg_roster').insert(players.map((p, i) => ({ season_id: data.id, league_id: league.id, member: p.id, team: p.team, position: i })));
+    if (e2) toast(explain(e2));
+  }
+  S.seasonId = data.id; lsSet('wg-season', data.id); S.draftFor = null; S.newSeason = null; S.log = null;
+  toast(`Season ${num} has started`);
+  scheduleReload();
+}
+async function deleteSeason() {
+  const id = S.draftFor; const n = S.seasons[id]?.num;
+  const { error } = await sb.from('wg_seasons').delete().eq('id', id);
+  if (error) { toast(explain(error)); return; }
+  delete S.seasons[id]; S.seasonId = null; S.draftFor = null;
+  toast(`Deleted Season ${n}`);
+  render(true); scheduleReload();
+}
+
+/* ---------- events in the league view ---------- */
+$('top-right').addEventListener('change', e => {
+  if (e.target.id !== 'season-select') return;
+  S.seasonId = e.target.value; lsSet('wg-season', S.seasonId); S.log = null; S.draftFor = null; S.confirm = null; render(true);
+});
+$('top-right').addEventListener('click', e => { if (e.target.closest('#btn-settings')) openSettings(); });
+function setView() { const h = location.hash.slice(1); S.view = VIEWS.some(([v]) => v === h) ? h : 'board'; S.confirm = null; }
+window.addEventListener('hashchange', () => { setView(); render(true); });
+
+const main = $('main');
+main.addEventListener('change', e => {
+  const t = e.target; const s = season();
+  if (t.id === 'log-player') { loadLogFor(s, t.value, S.log.date); render(true); return; }
+  if (t.id === 'log-date') { if (t.value) { loadLogFor(s, S.log.player, t.value); render(true); } return; }
+  if (t.id === 'm-add') { $('m-add-new-field').hidden = t.value !== '+new'; if (t.value === '+new') $('m-add-new').focus(); return; }
+  if (t.dataset.ns) { S.newSeason[t.dataset.ns] = t.type === 'checkbox' ? t.checked : t.value; return; }
+  if (!S.draft) return;
+  if (t.dataset.pl && t.dataset.k === 'team') { S.draft.players[t.dataset.pl].team = t.value; return; }
+  if (t.dataset.f) S.draft[t.dataset.f] = t.value;
+});
+main.addEventListener('input', e => {
+  const t = e.target;
+  if (t.id === 'log-steps') { S.log.steps = t.value; updateLogCalc(); return; }
+  if (t.id === 'log-manual') { S.log.manual = t.value; updateLogCalc(); return; }
+  if (t.dataset.ns && t.type !== 'checkbox') { S.newSeason[t.dataset.ns] = t.value; return; }
+  if (!S.draft) return;
+  if (t.dataset.f) S.draft[t.dataset.f] = t.value;
+  else if (t.dataset.pl) S.draft.players[t.dataset.pl][t.dataset.k] = t.value;
+  else if (t.dataset.tm) S.draft.teams[t.dataset.tm][t.dataset.k] = t.value;
+  else if (t.dataset.aw) S.draft.awards[t.dataset.aw][t.dataset.k] = t.value;
+});
+main.addEventListener('click', e => {
+  const tog = e.target.closest('[data-tog]');
+  if (tog) { const k = tog.dataset.tog; S.log[k] = !S.log[k]; tog.setAttribute('aria-pressed', S.log[k]); updateLogCalc(); return; }
+  const pick = e.target.closest('[data-pick]');
+  if (pick) { loadLogFor(season(), S.log.player, pick.dataset.pick); render(true); return; }
+  const cell = e.target.closest('[data-cell]');
+  if (cell && !cell.disabled) { editCell(cell); return; }
+  if (e.target.id === 'log-clear') {
+    const s = season(), f = S.log;
+    setDay(s, f.player, f.date, 0, null).then(ok => { if (ok) toast(`Cleared ${dShort(f.date)}`); });
+    S.log = null; return;
+  }
+  const act = e.target.closest('[data-act]');
+  if (act) manageAct(act.dataset.act, act.dataset.sure);
+});
+main.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && e.target.id === 'm-add-new') { e.preventDefault(); main.querySelector('[data-act="add-player"]')?.click(); }
+});
+main.addEventListener('submit', e => {
+  if (e.target.id !== 'log-form') return;
+  e.preventDefault();
+  const s = season(); const f = S.log; const r = seasonRange(s);
+  if (!f.date || (r && f.date < r.start)) { toast('Pick a date inside the season.'); return; }
+  if (f.date > today()) { toast("You can't log a day that hasn't happened yet."); return; }
+  const pts = computePts(s, f);
+  const detail = s.scoring === 'steps' ? { steps: Number(f.steps) || 0, workout: !!f.workout } : s.scoring === 'tiers' ? { walk: !!f.walk, bw: !!f.bw, gym: !!f.gym } : null;
+  document.activeElement?.blur();
+  setDay(s, f.player, f.date, pts, pts > 0 ? detail : null).then(ok => { if (ok) toast(pts > 0 ? `Saved ${fmtN(pts)} pts for ${f.player} on ${dShort(f.date)}` : `Cleared ${dShort(f.date)}`); });
+  S.log = null;
+});
+
+/* ---------- sign in ---------- */
+// Username accounts are stored as <username>@users.bravepop.app; no email is ever sent there.
+// They're shared with Movie Club, in the same Supabase project.
+const USER_DOMAIN = 'users.bravepop.app';
+const usernameAccount = () => !!session?.user?.email?.endsWith('@' + USER_DOMAIN);
+const accountLabel = () => usernameAccount() ? session.user.email.split('@')[0] : session?.user?.email || '';
+const cleanUsername = u => u.trim().toLowerCase();
+const USERNAME_OK = /^[a-z0-9_]{3,20}$/;
+const firstName = () => {
+  const m = session?.user?.user_metadata || {};
+  const n = (m.full_name || m.name || '').trim().split(/\s+/)[0] || (m.username ? m.username[0].toUpperCase() + m.username.slice(1) : '');
+  return n.slice(0, 30);
+};
+async function signInWithGoogle() {
+  const back = location.origin + location.pathname + location.search;
+  // select_account: always ask which Google account, for people with several.
+  const { error } = await sb.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: back, queryParams: { prompt: 'select_account' } } });
+  if (error) toast("Couldn't start Google sign-in. Try again in a moment.");
+}
+
+let afterRecovery = null;
+function showRecoveryCode(code, then) {
+  afterRecovery = then;
+  $('recovery-code').textContent = code;
+  $('recovery-saved').checked = false;
+  $('recovery-go').disabled = true;
+  openDialog($('recovery'));
+}
+$('recovery-saved').addEventListener('change', e => { $('recovery-go').disabled = !e.target.checked; });
+$('recovery-copy').addEventListener('click', async () => {
+  try { await navigator.clipboard.writeText($('recovery-code').textContent); toast('Recovery code copied'); }
+  catch (e) { toast('Select the code and copy it.'); }
+});
+$('recovery').addEventListener('cancel', e => e.preventDefault()); // Esc doesn't skip saving it
+$('recovery-form').addEventListener('submit', e => {
+  e.preventDefault();
+  if (!$('recovery-saved').checked) return;
+  closeDialog($('recovery'));
+  const then = afterRecovery; afterRecovery = null;
+  if (then) then();
+});
+$('btn-new-recovery').addEventListener('click', async () => {
+  if (!confirm('Make a new recovery code? Your current one stops working.')) return;
+  const { data, error } = await sb.rpc('make_recovery_code');
+  if (error) { toast("Couldn't make a new code. Try again."); return; }
+  closeDialog($('settings'));
+  showRecoveryCode(data, () => toast('New recovery code saved'));
+});
+$('btn-passwd').addEventListener('click', () => {
+  closeDialog($('settings'));
+  $('passwd-form').reset(); $('passwd-error').hidden = true;
+  openDialog($('passwd')); $('p-new').focus();
+});
+$('passwd-form').addEventListener('submit', async e => {
+  e.preventDefault();
+  const a = $('p-new').value, b = $('p-again').value, err = $('passwd-error');
+  const fail = m => { err.textContent = m; err.hidden = false; };
+  if (a.length < 8) return fail('Use at least 8 characters.');
+  if (a !== b) return fail("The two passwords don't match.");
+  const { error } = await sb.auth.updateUser({ password: a });
+  if (error) return fail(/different/i.test(error.message) ? "That's your current password. Pick a new one." : "Couldn't change the password. Try again.");
+  closeDialog($('passwd'));
+  toast('Password changed');
+});
+
+/* ---------- home: sign in, your leagues, start or join a league ---------- */
+const leagueUrl = slug => `${location.pathname}?l=${encodeURIComponent(slug)}`;
+function showHome(html) {
+  league = null;
+  $('app').hidden = true; $('status').hidden = true; $('home').hidden = false;
+  $('home').innerHTML = html;
+  $('brand').textContent = 'Workout Gang';
+  $('brand').href = './';
+  document.title = 'Workout Gang';
+  $('top-right').innerHTML = '';
+}
+
+function renderSignedOut() {
+  const heading = JOIN_CODE ? "You've been invited to a workout league" : LEAGUE_SLUG ? 'Sign in to see your league' : 'Workouts are better as a competition';
+  showHome(`
+    <div class="pitch">
+      <h2>${heading}</h2>
+      <ul>
+        <li>Log your day in seconds: steps, a workout, or points your league makes up.</li>
+        <li>Split into teams and fight for the week. Everyone sees the score live.</li>
+        <li>Seasons end with awards and a spot in your league's Hall of Fame.</li>
+      </ul>
+      <p class="muted">${JOIN_CODE ? 'Sign in to see the league and join it.' : 'Free to use. Leagues are private: only their members can see them.'}</p>
+    </div>
+    <div class="box">
+      <div><button class="btn primary" type="button" id="home-signin">Continue with Google</button></div>
+      <div class="or-rule">or use a username</div>
+      <form class="box" style="border:0;padding:0" id="acct-form" novalidate>
+        <div class="seg" role="group" aria-label="Sign in or create an account" id="acct-mode">
+          <button type="button" data-mode="in" aria-pressed="true">Sign in</button>
+          <button type="button" data-mode="up" aria-pressed="false">Create account</button>
+        </div>
+        <div class="field"><label for="a-user">Username</label><input id="a-user" autocomplete="username" autocapitalize="none" spellcheck="false" maxlength="20"><span class="help" id="a-user-help" hidden>3–20 letters, numbers or _. You sign in with it; your name in each league can be different.</span></div>
+        <div class="field"><label for="a-pass">Password</label><input id="a-pass" type="password" autocomplete="current-password"></div>
+        <div class="field" id="a-again-field" hidden><label for="a-again">Type the password again</label><input id="a-again" type="password" autocomplete="new-password"></div>
+        <p class="form-error" id="acct-error" hidden></p>
+        <div class="acct-actions">
+          <button class="btn primary" type="submit" id="acct-go">Sign in</button>
+          <button class="link-btn" type="button" id="acct-forgot">Forgot your password?</button>
+        </div>
+      </form>
+      <form class="box" style="border:0;padding:0" id="reset-form" novalidate hidden>
+        <h3>Set a new password</h3>
+        <p class="help">Use the recovery code you saved when you made your account.</p>
+        <div class="field"><label for="r-user">Username</label><input id="r-user" autocomplete="username" autocapitalize="none" spellcheck="false" maxlength="20"></div>
+        <div class="field"><label for="r-code">Recovery code</label><input id="r-code" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="XXXX-XXXX-XXXX-XXXX-XXXX"></div>
+        <div class="field"><label for="r-pass">New password</label><input id="r-pass" type="password" autocomplete="new-password"><span class="help">At least 8 characters.</span></div>
+        <p class="form-error" id="reset-error" hidden></p>
+        <div class="acct-actions">
+          <button class="btn primary" type="submit" id="reset-go">Set new password</button>
+          <button class="link-btn" type="button" id="reset-back">Back to sign in</button>
+        </div>
+      </form>
+      <p class="help">Already on Movie Club? Your Bravepop account works here too.</p>
+    </div>`);
+  $('home-signin').addEventListener('click', signInWithGoogle);
+  wireAccountForms();
+}
+
+function wireAccountForms() {
+  let mode = 'in';
+  const err = (id, msg) => { $(id).textContent = msg; $(id).hidden = !msg; };
+  const setMode = m => {
+    mode = m;
+    $('acct-mode').querySelectorAll('[data-mode]').forEach(b => b.setAttribute('aria-pressed', b.dataset.mode === m ? 'true' : 'false'));
+    $('a-again-field').hidden = $('a-user-help').hidden = m === 'in';
+    $('acct-forgot').hidden = m === 'up';
+    $('a-pass').autocomplete = m === 'in' ? 'current-password' : 'new-password';
+    $('acct-go').textContent = m === 'in' ? 'Sign in' : 'Create account';
+    err('acct-error', '');
+  };
+  $('acct-mode').addEventListener('click', e => { const b = e.target.closest('[data-mode]'); if (b) setMode(b.dataset.mode); });
+  const swap = toReset => {
+    $('acct-form').hidden = toReset; $('reset-form').hidden = !toReset;
+    if (toReset) { $('r-user').value = $('a-user').value; $('r-user').focus(); } else $('a-user').focus();
+  };
+  $('acct-forgot').addEventListener('click', () => swap(true));
+  $('reset-back').addEventListener('click', () => swap(false));
+
+  $('acct-form').addEventListener('submit', async e => {
+    e.preventDefault();
+    const user = cleanUsername($('a-user').value), pass = $('a-pass').value;
+    if (!USERNAME_OK.test(user)) return err('acct-error', mode === 'in' ? 'Enter your username.' : 'Usernames are 3–20 letters, numbers or _.');
+    if (mode === 'up' && pass.length < 8) return err('acct-error', 'Use at least 8 characters for the password.');
+    if (mode === 'up' && pass !== $('a-again').value) return err('acct-error', "The two passwords don't match.");
+    if (!pass) return err('acct-error', 'Enter your password.');
+    $('acct-go').disabled = true; err('acct-error', '');
+    const email = `${user}@${USER_DOMAIN}`;
+    if (mode === 'in') {
+      const { error } = await sb.auth.signInWithPassword({ email, password: pass });
+      $('acct-go').disabled = false;
+      if (error) return err('acct-error', /invalid/i.test(error.message) ? "That username and password don't match." : "Couldn't sign in right now. Try again in a moment.");
+      location.reload();
+      return;
+    }
+    const { data, error } = await sb.auth.signUp({ email, password: pass, options: { data: { username: user } } });
+    if (error || !data.session) {
+      $('acct-go').disabled = false;
+      if (error && /already/i.test(error.message)) return err('acct-error', 'That username is taken. Try another.');
+      if (error && /pwned|weak|leaked/i.test(error.message)) return err('acct-error', 'That password is too easy to guess. Pick another.');
+      if (error && /rate|too many/i.test(error.message)) return err('acct-error', 'Too many new accounts from here just now. Try again in a few minutes.');
+      return err('acct-error', "Username accounts aren't available right now. Try Google, or try again later.");
+    }
+    session = data.session;
+    const { data: code } = await sb.rpc('make_recovery_code');
+    if (code) showRecoveryCode(code, () => location.reload());
+    else location.reload();
+  });
+
+  $('reset-form').addEventListener('submit', async e => {
+    e.preventDefault();
+    const user = cleanUsername($('r-user').value), code = $('r-code').value.trim(), pass = $('r-pass').value;
+    if (!USERNAME_OK.test(user)) return err('reset-error', 'Enter your username.');
+    if (!code) return err('reset-error', 'Enter your recovery code.');
+    if (pass.length < 8) return err('reset-error', 'Use at least 8 characters for the new password.');
+    $('reset-go').disabled = true; err('reset-error', '');
+    const { data, error } = await sb.rpc('reset_password', { username: user, code, new_password: pass });
+    if (error || !data?.ok) { $('reset-go').disabled = false; return err('reset-error', data?.error || "Couldn't reset the password right now. Try again in a moment."); }
+    await sb.auth.signInWithPassword({ email: `${user}@${USER_DOMAIN}`, password: pass });
+    showRecoveryCode(data.code, () => location.reload());
+  });
+}
+
+async function renderMyLeagues() {
+  showHome('<div class="status-box"><strong>Loading your leagues</strong></div>');
+  const { data, error } = await sb.from('wg_members').select('name, role, wg_leagues(name, slug)').eq('user_id', session.user.id);
+  if (error) return showHome('<div class="status-box"><strong>Couldn\'t load your leagues</strong><p class="muted">Check your connection and try again.</p></div>');
+  const list = (data || []).filter(m => m.wg_leagues).sort((a, b) => a.wg_leagues.name.localeCompare(b.wg_leagues.name));
+  if (list.length === 1 && !sessionStorage.getItem('wg-stay-home')) { location.replace(leagueUrl(list[0].wg_leagues.slug)); return; }
+  showHome(`
+    <div class="box">
+      <h2>Your leagues</h2>
+      ${list.length
+        ? `<ul class="league-list">${list.map(m => `<li><a href="${esc(leagueUrl(m.wg_leagues.slug))}"><span>${esc(m.wg_leagues.name)}</span><small>You're ${esc(m.name)}${m.role === 'admin' ? ' · admin' : ''}</small></a></li>`).join('')}</ul>`
+        : '<p>You\'re not in a league yet. Start one below, or open an invite link a friend sent you.</p>'}
+    </div>
+    <form class="box" id="new-league" novalidate>
+      <h3>Start a league</h3>
+      <div class="field"><label for="nl-name">League name</label><input id="nl-name" maxlength="60" autocomplete="off" placeholder="The Gym Rats"></div>
+      <div class="field"><label for="nl-me">Your name in the league</label><input id="nl-me" maxlength="30" autocomplete="off" value="${esc(firstName())}"><span class="help">Shown on the leaderboard.</span></div>
+      <div class="form-grid">
+        <div class="field"><label for="nl-season">First season's name</label><input id="nl-season" maxlength="80" autocomplete="off" placeholder="Humble Beginnings"></div>
+        <div class="field"><label for="nl-start">Starts</label><input id="nl-start" type="date" value="${today()}"></div>
+      </div>
+      <div class="field"><label for="nl-scoring">Scoring</label><select id="nl-scoring">${['steps', 'tiers', 'manual'].map(k => `<option value="${k}">${SCORING[k]}</option>`).join('')}</select></div>
+      <p class="help">You'll get an invite link for your friends, and can set teams and rules, once the league exists.</p>
+      <p class="form-error" id="nl-error" hidden></p>
+      <div><button class="btn primary" type="submit" id="nl-go">Start the league</button></div>
+    </form>
+    <p class="muted home-foot">Signed in as ${esc(accountLabel())} · <button class="link-btn" type="button" id="home-signout">Sign out</button> · <button class="link-btn" type="button" id="home-delete">Delete my account</button></p>`);
+  $('home-signout').addEventListener('click', signOut);
+  $('home-delete').addEventListener('click', deleteAccount);
+  $('new-league').addEventListener('submit', async e => {
+    e.preventDefault();
+    const name = $('nl-name').value.trim(), myName = $('nl-me').value.trim(), sName = $('nl-season').value.trim() || 'Season 1';
+    const start = $('nl-start').value, scoring = $('nl-scoring').value;
+    const fail = msg => { $('nl-error').textContent = msg; $('nl-error').hidden = false; };
+    if (!name) return fail('Give the league a name.');
+    if (!myName) return fail('Add your name in the league.');
+    $('nl-go').disabled = true;
+    const { data: l, error } = await sb.rpc('wg_create_league', { league_name: name, my_name: myName });
+    if (error) { $('nl-go').disabled = false; return fail(explain(error, "Couldn't start the league. Try again in a moment.")); }
+    const teams = [{ id: 'red', name: 'Red Team', color: PALETTE[0] }, { id: 'blue', name: 'Blue Team', color: PALETTE[1] }];
+    const { data: s } = await sb.from('wg_seasons').insert({
+      league_id: l.id, num: 1, name: sName, status: 'active', start_date: start || today(), scoring,
+      max_per_day: scoring === 'manual' ? null : 6, rules: scoring === 'steps' ? STEPS_RULES : scoring === 'tiers' ? TIER_RULES : '', teams, awards: [],
+    }).select('id').single();
+    if (s) await sb.from('wg_roster').insert({ season_id: s.id, league_id: l.id, member: myName, team: 'red', position: 0 });
+    location.href = leagueUrl(l.slug) + '#manage';
+  });
+}
+
+async function renderJoin() {
+  showHome('<div class="status-box"><strong>Opening the invite</strong></div>');
+  const { data, error } = await sb.rpc('wg_invite_preview', { code: JOIN_CODE });
+  const inv = data && data[0];
+  if (error || !inv) {
+    return showHome('<div class="box"><h3>That invite link doesn\'t work</h3><p>The league may have made a new one. Ask someone in it for the current link.</p><div><a class="btn" href="./">Go to your leagues</a></div></div>');
+  }
+  if (inv.already_member) { location.replace(leagueUrl(inv.slug)); return; }
+  const open = inv.open_names || [];
+  showHome(`
+    <form class="box" id="join" novalidate>
+      <span class="label">You're invited to</span>
+      <h2>${esc(inv.league_name)}</h2>
+      <p>${plural(inv.member_count, 'member')} so far. Join to log your days and see the scoreboard.</p>
+      ${open.length ? `
+        <fieldset class="claim">
+          <legend class="label">Which one are you?</legend>
+          ${open.map(n => `<label class="check"><input type="radio" name="who" value="${esc(n)}"> ${esc(n)}</label>`).join('')}
+          <label class="check"><input type="radio" name="who" value="" checked> Someone new</label>
+        </fieldset>
+        <p class="help">If your name is already here, pick it so your past points stay with you.</p>` : ''}
+      <div class="field" id="join-new"><label for="join-name">Your name in the league</label><input id="join-name" maxlength="30" autocomplete="off" value="${esc(firstName())}"></div>
+      <p class="form-error" id="join-error" hidden></p>
+      <div><button class="btn primary" type="submit" id="join-go">Join the league</button></div>
+    </form>`);
+  const picked = () => document.querySelector('input[name="who"]:checked')?.value || '';
+  $('join').addEventListener('change', () => { $('join-new').hidden = !!picked(); });
+  $('join').addEventListener('submit', async e => {
+    e.preventDefault();
+    const name = picked() || $('join-name').value.trim();
+    const fail = msg => { $('join-error').textContent = msg; $('join-error').hidden = false; };
+    if (!name) return fail('Add your name in the league.');
+    $('join-go').disabled = true;
+    const { data: slug, error: err } = await sb.rpc('wg_join_league', { code: JOIN_CODE, as_name: name });
+    if (err) { $('join-go').disabled = false; return fail(explain(err, "Couldn't join right now. Try again in a moment.")); }
+    location.href = leagueUrl(slug);
+  });
+}
+
+/* ---------- settings and account ---------- */
+function openSettings() {
+  $('settings-league').hidden = !league;
+  $('btn-league-admin').hidden = !isAdmin();
+  $('settings-email').textContent = session ? `Signed in as ${accountLabel()}` : '';
+  $('btn-passwd').hidden = $('btn-new-recovery').hidden = !usernameAccount();
+  openDialog($('settings'));
+}
+$('settings-form').addEventListener('submit', e => { e.preventDefault(); closeDialog($('settings')); });
+$('settings').querySelector('a[href="./"]').addEventListener('click', () => { try { sessionStorage.setItem('wg-stay-home', '1'); } catch (e) {} });
+async function signOut() {
+  await sb.auth.signOut().catch(() => {});
+  location.href = location.pathname;
+}
+async function leaveLeague() {
+  const alone = members.filter(m => m.user_id).length === 1;
+  const msg = alone
+    ? `You're the only one who has joined ${league.name}, so leaving deletes the league and everything in it. Leave and delete it?`
+    : `Leave ${league.name}? Your name and points stay in the league's history. You'd need an invite link to come back.`;
+  if (!confirm(msg)) return;
+  const { error } = await sb.rpc('wg_leave_league', { l: league.id });
+  if (error) { toast(explain(error, "Couldn't leave the league. Try again.")); return; }
+  location.href = location.pathname;
+}
+async function deleteAccount() {
+  if (!confirm('Delete your Bravepop account? This signs you out of Workout Gang and Movie Club for good. In each league and club your name and history stay, no longer linked to you. This can\'t be undone.')) return;
+  const { error } = await sb.rpc('delete_my_account');
+  if (error) { toast("Couldn't delete your account. Try again."); return; }
+  await signOut();
+}
+$('btn-signout').addEventListener('click', signOut);
+$('btn-leave').addEventListener('click', leaveLeague);
+$('btn-delete-account').addEventListener('click', deleteAccount);
+$('btn-league-admin').addEventListener('click', () => { closeDialog($('settings')); openLeagueAdmin(); });
+
+/* ---------- league settings (admins) ---------- */
+let adm = { renaming: null, removing: null, invite: null };
+const adminOpen = () => $('league-admin').open;
+const inviteLink = code => `${location.origin}${location.pathname}?join=${code}`;
+function openLeagueAdmin() {
+  adm = { renaming: null, removing: null, invite: null };
+  renderLeagueAdmin();
+  openDialog($('league-admin'));
+  sb.rpc('wg_admin_invite_code', { l: league.id }).then(({ data }) => { adm.invite = data; if (adminOpen()) renderLeagueAdmin(); });
+}
+function memberRow(m) {
+  const nm = esc(m.name);
+  const btn = (act, label, cls = '') => `<button class="btn small ${cls}" type="button" data-adm="${act}" data-name="${nm}">${label}</button>`;
+  if (adm.renaming === m.name) {
+    return `<li><input id="la-rename" maxlength="30" value="${nm}" aria-label="New name for ${nm}" style="flex:1 1 160px">
+      <span class="acts">${btn('rename-save', 'Save', 'primary')}${btn('cancel', 'Cancel')}</span></li>`;
+  }
+  if (adm.removing === m.name) {
+    return `<li><span class="who">Remove ${nm}?<small>Keeping their points leaves their name in the league's history, unlinked from their account.</small></span>
+      <span class="acts">${btn('remove-keep', 'Remove, keep points')}${btn('remove-all', 'Remove with all their points', 'danger')}${btn('cancel', 'Cancel')}</span></li>`;
+  }
+  const tags = [m.name === me ? 'you' : '', m.role === 'admin' ? 'admin' : '', !m.user_id ? 'not joined yet' : ''].filter(Boolean).join(' · ');
+  return `<li><span class="who">${nm}${tags ? `<small>${tags}</small>` : ''}</span>
+    <span class="acts">${btn('rename', 'Rename')}
+      ${m.user_id && m.name !== me ? btn(m.role === 'admin' ? 'unadmin' : 'admin', m.role === 'admin' ? 'Remove admin' : 'Make admin') : ''}
+      ${m.name !== me ? btn('remove', 'Remove', 'danger') : ''}</span></li>`;
+}
+function renderLeagueAdmin() {
+  if (!isAdmin()) { if (adminOpen()) closeDialog($('league-admin')); return; }
+  const body = $('league-admin-body');
+  const typed = {};
+  body.querySelectorAll('input[id]:not([readonly])').forEach(el => { typed[el.id] = el.value; });
+  const focusId = body.contains(document.activeElement) ? document.activeElement.id : null;
+  const sorted = [...members].sort((a, b) => (!!b.user_id - !!a.user_id) || a.name.localeCompare(b.name));
+  body.innerHTML = `
+    <section class="adm-section">
+      <div class="inline"><div class="field"><label for="la-name">League name</label><input id="la-name" maxlength="60" value="${esc(league.name)}"></div>
+      <button class="btn small" type="button" data-adm="save-name">Save</button></div>
+    </section>
+    <section class="adm-section">
+      <span class="label">Invite link</span>
+      <p class="help">Anyone with this link can join once they sign in, so only send it to people you want in.</p>
+      <div class="inline"><input readonly id="la-invite" style="flex:1 1 240px" value="${adm.invite ? esc(inviteLink(adm.invite)) : 'Loading…'}" aria-label="Invite link"><button class="btn small primary" type="button" data-adm="copy-invite">Copy</button></div>
+      <div><button class="link-btn" type="button" data-adm="new-invite">Make a new link (the current one stops working)</button></div>
+    </section>
+    <section class="adm-section">
+      <span class="label">Members</span>
+      <p class="help">Names that are "not joined yet" can be claimed from the invite page, keeping their points.</p>
+      <ul class="adm-members">${sorted.map(memberRow).join('')}</ul>
+      <div class="inline"><div class="field"><label for="la-add">Add someone who hasn't joined</label><input id="la-add" maxlength="30" autocomplete="off" placeholder="Their name"></div>
+      <button class="btn small" type="button" data-adm="add-member">Add</button></div>
+    </section>
+    <section class="adm-section">
+      <span class="label">Delete the league</span>
+      <p class="help">Deletes the league with every season and every point, for everyone. This can't be undone.</p>
+      <div><button class="btn small danger" type="button" data-adm="delete-league">Delete ${esc(league.name)}</button></div>
+    </section>`;
+  for (const [id, v] of Object.entries(typed)) { const el = $(id); if (el && id !== 'la-rename') el.value = v; }
+  if (focusId && $(focusId)) $(focusId).focus();
+}
+$('league-admin-form').addEventListener('submit', e => e.preventDefault());
+$('league-admin-body').addEventListener('keydown', e => {
+  if (e.key !== 'Enter') return;
+  const act = { 'la-name': 'save-name', 'la-add': 'add-member', 'la-rename': 'rename-save' }[e.target.id];
+  if (!act) return;
+  e.preventDefault();
+  document.querySelector(`#league-admin-body [data-adm="${act}"]`)?.click();
+});
+$('league-admin-body').addEventListener('click', async e => {
+  const b = e.target.closest('[data-adm]'); if (!b || b.disabled) return;
+  const act = b.dataset.adm, name = b.dataset.name;
+  if (act === 'save-name') {
+    const n = $('la-name').value.trim();
+    if (!n) return toast('The league needs a name.');
+    if (await rpc('wg_admin_rename_league', { new_name: n }, 'League name saved')) { league.name = n; render(); }
+  } else if (act === 'copy-invite') {
+    if (!adm.invite) return;
+    try { await navigator.clipboard.writeText(inviteLink(adm.invite)); toast('Invite link copied'); }
+    catch (err) { $('la-invite').select(); toast('Select the link and copy it.'); }
+  } else if (act === 'new-invite') {
+    if (!confirm("Make a new invite link? The current link stops working, so anyone who hasn't joined yet will need the new one.")) return;
+    const code = await rpc('wg_admin_new_invite', {}, 'New invite link made');
+    if (code) { adm.invite = code; renderLeagueAdmin(); }
+  } else if (act === 'rename') {
+    adm.renaming = name; adm.removing = null; renderLeagueAdmin(); $('la-rename')?.select();
+  } else if (act === 'rename-save') {
+    const n = $('la-rename').value.trim();
+    if (!n) return toast("Names can't be empty.");
+    adm.renaming = null;
+    if (n === name) return renderLeagueAdmin();
+    if (!(await rpc('wg_admin_rename_member', { old_name: name, new_name: n }, `Renamed ${name} to ${n}`))) renderLeagueAdmin();
+  } else if (act === 'cancel') {
+    adm.renaming = adm.removing = null; renderLeagueAdmin();
+  } else if (act === 'admin' || act === 'unadmin') {
+    rpc('wg_admin_set_role', { who: name, new_role: act === 'admin' ? 'admin' : 'member' }, act === 'admin' ? `${name} is now an admin` : `${name} is no longer an admin`);
+  } else if (act === 'remove') {
+    adm.removing = name; adm.renaming = null; renderLeagueAdmin();
+  } else if (act === 'remove-keep' || act === 'remove-all') {
+    adm.removing = null;
+    rpc('wg_admin_remove_member', { who: name, keep_history: act === 'remove-keep' }, `Removed ${name}`);
+  } else if (act === 'add-member') {
+    const n = $('la-add').value.trim();
+    if (!n) return toast('Type a name.');
+    if (await rpc('wg_admin_add_member', { new_name: n }, `Added ${n}. They can claim the name from the invite link.`)) $('la-add').value = '';
+  } else if (act === 'delete-league') {
+    const typed = prompt(`This deletes ${league.name} for everyone. Type the league's name to confirm:`);
+    if (typed == null) return;
+    if (typed.trim() !== league.name) return toast("The name didn't match, so nothing was deleted.");
+    if (await rpc('wg_admin_delete_league', {}, null)) location.href = location.pathname;
+  }
+});
+
+/* ---------- open a league ---------- */
+async function refreshLeague() {
+  const { data } = await sb.from('wg_leagues').select('id, slug, name').eq('id', league.id).maybeSingle();
+  if (!data) { location.href = location.pathname; return; } // deleted, or you were removed
+  league = data; render();
+}
+async function openLeague() {
+  const { data, error } = await sb.from('wg_leagues').select('id, slug, name').eq('slug', LEAGUE_SLUG).maybeSingle();
+  if (error) return showStatus("The league couldn't load", 'Check your connection and try again in a minute.');
+  if (!data) {
+    return showHome('<div class="box"><h3>You\'re not in this league</h3><p>Leagues are private. To join, ask a member for the invite link.</p><div><a class="btn" href="./">Go to your leagues</a></div></div>');
+  }
+  league = data;
+  try { await load(); }
+  catch (e) { return showStatus("The league couldn't load", 'Check your connection and try again in a minute.'); }
+  if (!me) return location.replace(location.pathname);
+  setView();
+  render();
+  const filter = `league_id=eq.${league.id}`;
+  const ch = sb.channel(`wg-league-${league.id}`);
+  ch.on('postgres_changes', { event: '*', schema: 'public', table: 'wg_days', filter }, p => applyDayChange(p.new));
+  ['wg_members', 'wg_seasons', 'wg_roster'].forEach(table => ch.on('postgres_changes', { event: '*', schema: 'public', table, filter }, scheduleReload));
+  ch.on('postgres_changes', { event: '*', schema: 'public', table: 'wg_leagues', filter: `id=eq.${league.id}` }, refreshLeague);
+  ch.subscribe();
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) scheduleReload(); });
+}
+
+/* ---------- boot ---------- */
+// Install as an app / open offline. Not on localhost, so local testing always gets fresh files.
+if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch(() => {});
+(async () => {
+  if (!window.supabase || !CFG.supabaseUrl) return showStatus("The database isn't connected", 'Add the Supabase project URL and key to config.js.');
+  sb = window.supabase.createClient(CFG.supabaseUrl, CFG.supabaseAnonKey, { auth: { flowType: 'pkce' } });
+  const { data } = await sb.auth.getSession();
+  session = data.session;
+  // Tidy the sign-in leftovers out of the address.
+  if (PARAMS.has('code') || PARAMS.has('error')) {
+    if (PARAMS.get('error_description')) toast(`Sign-in didn't finish: ${PARAMS.get('error_description')}`);
+    const q = new URLSearchParams(location.search);
+    ['code', 'error', 'error_code', 'error_description'].forEach(k => q.delete(k));
+    try { history.replaceState(null, '', location.pathname + (q.size ? '?' + q : '') + location.hash); } catch (e) {}
+  }
+  sb.auth.onAuthStateChange((event, s) => {
+    if (event === 'SIGNED_OUT') { location.href = location.pathname; return; }
+    session = s;
+  });
+  if (!session) return renderSignedOut();
+  if (JOIN_CODE) return renderJoin();
+  if (!LEAGUE_SLUG) return renderMyLeagues();
+  await openLeague();
+})();
+</script>
+</body>
+</html>
