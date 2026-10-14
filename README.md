@@ -10,6 +10,7 @@ A free site where friends run workout competitions: log your day, win weeks for 
 
 - Anyone signed in can **start a league** (up to 5 each). They become its admin.
 - The admin sends the league's **invite link** (gear icon → League settings). People sign in, open the link and join, either as a new name or by claiming a name already in the league (which keeps that name's past points). A league nobody has joined yet, such as the imported one, makes its first joiner admin.
+- Someone who played under two names (the old spreadsheet had a few) can be merged: League settings → **Merge into…** on the extra name moves its seasons and points to the other.
 - **Members** log their own days in the current season: steps + workout, walk / bodyweight / gym, or points typed in, depending on the season's scoring. **Admins** can fix anyone's days, and run seasons from the **Manage** tab: rules, scoring, teams, players, awards, starting and finishing seasons.
 - Tabs: Scoreboard (team score and personal leaderboard), Log a day, Sheet (the old spreadsheet grid), Weekly (team points and MVP per week), Hall of Fame.
 

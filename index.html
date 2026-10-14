@@ -1428,11 +1428,11 @@ $('btn-delete-account').addEventListener('click', deleteAccount);
 $('btn-league-admin').addEventListener('click', () => { closeDialog($('settings')); openLeagueAdmin(); });
 
 /* ---------- league settings (admins) ---------- */
-let adm = { renaming: null, removing: null, invite: null };
+let adm = { renaming: null, removing: null, merging: null, invite: null };
 const adminOpen = () => $('league-admin').open;
 const inviteLink = code => `${location.origin}${location.pathname}?join=${code}`;
 function openLeagueAdmin() {
-  adm = { renaming: null, removing: null, invite: null };
+  adm = { renaming: null, removing: null, merging: null, invite: null };
   renderLeagueAdmin();
   openDialog($('league-admin'));
   sb.rpc('wg_admin_invite_code', { l: league.id }).then(({ data }) => { adm.invite = data; if (adminOpen()) renderLeagueAdmin(); });
@@ -1444,13 +1444,19 @@ function memberRow(m) {
     return `<li><input id="la-rename" maxlength="30" value="${nm}" aria-label="New name for ${nm}" style="flex:1 1 160px">
       <span class="acts">${btn('rename-save', 'Save', 'primary')}${btn('cancel', 'Cancel')}</span></li>`;
   }
+  if (adm.merging === m.name) {
+    const others = members.filter(o => o.name !== m.name).sort((a, b) => a.name.localeCompare(b.name));
+    return `<li><span class="who">Merge ${nm} into…<small>Their seasons and points move to the name you pick, and ${nm} goes away. For someone who played under two names.</small></span>
+      <span class="acts"><select id="la-merge-into" aria-label="Merge ${nm} into"><option value="">Pick a name…</option>${others.map(o => `<option value="${esc(o.name)}">${esc(o.name)}${o.user_id ? '' : ' (not joined yet)'}</option>`).join('')}</select>
+      ${btn('merge-save', 'Merge', 'primary')}${btn('cancel', 'Cancel')}</span></li>`;
+  }
   if (adm.removing === m.name) {
     return `<li><span class="who">Remove ${nm}?<small>Keeping their points leaves their name in the league's history, unlinked from their account.</small></span>
       <span class="acts">${btn('remove-keep', 'Remove, keep points')}${btn('remove-all', 'Remove with all their points', 'danger')}${btn('cancel', 'Cancel')}</span></li>`;
   }
   const tags = [m.name === me ? 'you' : '', m.role === 'admin' ? 'admin' : '', !m.user_id ? 'not joined yet' : ''].filter(Boolean).join(' · ');
   return `<li><span class="who">${nm}${tags ? `<small>${tags}</small>` : ''}</span>
-    <span class="acts">${btn('rename', 'Rename')}
+    <span class="acts">${btn('rename', 'Rename')}${btn('merge', 'Merge into…')}
       ${m.user_id && m.name !== me ? btn(m.role === 'admin' ? 'unadmin' : 'admin', m.role === 'admin' ? 'Remove admin' : 'Make admin') : ''}
       ${m.name !== me ? btn('remove', 'Remove', 'danger') : ''}</span></li>`;
 }
@@ -1474,7 +1480,7 @@ function renderLeagueAdmin() {
     </section>
     <section class="adm-section">
       <span class="label">Members</span>
-      <p class="help">Names that are "not joined yet" can be claimed from the invite page, keeping their points.</p>
+      <p class="help">Names that are "not joined yet" can be claimed from the invite page, keeping their points. Someone who played under two names? Use "Merge into…" on the extra one.</p>
       <ul class="adm-members">${sorted.map(memberRow).join('')}</ul>
       <div class="inline"><div class="field"><label for="la-add">Add someone who hasn't joined</label><input id="la-add" maxlength="30" autocomplete="off" placeholder="Their name"></div>
       <button class="btn small" type="button" data-adm="add-member">Add</button></div>
@@ -1511,19 +1517,27 @@ $('league-admin-body').addEventListener('click', async e => {
     const code = await rpc('wg_admin_new_invite', {}, 'New invite link made');
     if (code) { adm.invite = code; renderLeagueAdmin(); }
   } else if (act === 'rename') {
-    adm.renaming = name; adm.removing = null; renderLeagueAdmin(); $('la-rename')?.select();
+    adm.renaming = name; adm.removing = adm.merging = null; renderLeagueAdmin(); $('la-rename')?.select();
   } else if (act === 'rename-save') {
     const n = $('la-rename').value.trim();
     if (!n) return toast("Names can't be empty.");
     adm.renaming = null;
     if (n === name) return renderLeagueAdmin();
     if (!(await rpc('wg_admin_rename_member', { old_name: name, new_name: n }, `Renamed ${name} to ${n}`))) renderLeagueAdmin();
+  } else if (act === 'merge') {
+    adm.merging = name; adm.renaming = adm.removing = null; renderLeagueAdmin(); $('la-merge-into')?.focus();
+  } else if (act === 'merge-save') {
+    const into = $('la-merge-into').value;
+    if (!into) return toast('Pick the name to merge into.');
+    if (!confirm(`Merge ${name} into ${into}? Every season and point of ${name}'s moves to ${into}, and ${name} is removed. This can't be undone.`)) return;
+    adm.merging = null;
+    if (!(await rpc('wg_admin_merge_member', { from_name: name, into_name: into }, `Merged ${name} into ${into}`))) renderLeagueAdmin();
   } else if (act === 'cancel') {
-    adm.renaming = adm.removing = null; renderLeagueAdmin();
+    adm.renaming = adm.removing = adm.merging = null; renderLeagueAdmin();
   } else if (act === 'admin' || act === 'unadmin') {
     rpc('wg_admin_set_role', { who: name, new_role: act === 'admin' ? 'admin' : 'member' }, act === 'admin' ? `${name} is now an admin` : `${name} is no longer an admin`);
   } else if (act === 'remove') {
-    adm.removing = name; adm.renaming = null; renderLeagueAdmin();
+    adm.removing = name; adm.renaming = adm.merging = null; renderLeagueAdmin();
   } else if (act === 'remove-keep' || act === 'remove-all') {
     adm.removing = null;
     rpc('wg_admin_remove_member', { who: name, keep_history: act === 'remove-keep' }, `Removed ${name}`);
